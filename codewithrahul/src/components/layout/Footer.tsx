@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   GithubIcon,
@@ -6,13 +5,6 @@ import {
   XIcon,
   InstagramIcon,
 } from '../icons/SocialIcons';
-import { commentService } from '../../lib/supabase';
-
-const getOrdinalSuffix = (n: number) => {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return s[(v - 20) % 10] || s[v] || s[0];
-};
 
 const navigateLinks = [
   { name: 'Home', href: '/' },
@@ -47,8 +39,6 @@ const socialLinks = [
 ];
 
 const Footer = () => {
-  const [visitorCount, setVisitorCount] = useState<number | null>(null);
-
   // Play click audio sound from public/Audio/
   const playClickSound = () => {
     const audio = new Audio('/Audio/link_sound.mp3');
@@ -56,27 +46,6 @@ const Footer = () => {
     audio.play().catch((err) => console.log('Audio play blocked or failed:', err));
   };
 
-  useEffect(() => {
-    const handleVisitorCount = async () => {
-      try {
-        const hasVisited = localStorage.getItem('site_visited');
-
-        if (!hasVisited) {
-          // Increment the view count for the entire site
-          await commentService.incrementSiteViews('main-site');
-          localStorage.setItem('site_visited', 'true');
-        }
-
-        // Fetch the updated count
-        const count = await commentService.getSiteViews('main-site');
-        setVisitorCount(count);
-      } catch (error) {
-        console.warn('Error handling visitor count:', error);
-      }
-    };
-
-    handleVisitorCount();
-  }, []);
   return (
     <footer className="bg-background pt-20 pb-16 relative">
       {/* Top Gradient Line */}
@@ -156,22 +125,6 @@ const Footer = () => {
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-border to-transparent"></div>
           <p className="text-muted-foreground text-sm font-hanken">
             © 2026 Rahul De. All rights reserved.
-          </p>
-          <p className="text-muted-foreground text-sm font-hanken">
-            You're the{' '}
-            {visitorCount !== null ? (
-              <>
-                <span className="text-foreground font-medium">
-                  {visitorCount.toLocaleString()}
-                  <sup className="text-[10px] opacity-80 ml-0.5">
-                    {getOrdinalSuffix(visitorCount)}
-                  </sup>
-                </span>
-                {' '}visitor to my website.
-              </>
-            ) : (
-              'Loading...'
-            )}
           </p>
         </div>
       </div>

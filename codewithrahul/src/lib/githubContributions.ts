@@ -90,7 +90,7 @@ const fillCalendarDates = (
   return completeDays;
 };
 
-export const isSupportedContributionYear = (year: string, now = new Date()): boolean => {
+export const isSupportedContributionYear = (year: string): boolean => {
   if (!/^\d{4}$/.test(year)) return false;
   const numericYear = Number(year);
   return numericYear >= 2008 && numericYear <= LAST_SELECTABLE_YEAR;
@@ -118,7 +118,7 @@ export const getContributionCalendar = async (
     days = allDays.filter((day) => day.date >= from && day.date <= to);
   } else {
     const year = Number(selectedYear);
-    if (!isSupportedContributionYear(selectedYear, now)) {
+    if (!isSupportedContributionYear(selectedYear)) {
       throw new Error('Invalid contribution year');
     }
     from = `${year}-01-01`;
