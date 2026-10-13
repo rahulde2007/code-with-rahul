@@ -1,131 +1,185 @@
-import { Heart } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowRight, Heart } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
 
 interface Sponsor {
+  login: string;
   name: string;
-  github: string;
-  x: string;
-  avatar: string;
-  amount: string;
+  avatarUrl: string;
+  url: string;
 }
 
-const sponsorsData: Sponsor[] = [
-  {
-    name: 'Sanjay Viswanathan',
-    github: 'sanjay-kv',
-    x: 'sanjay_kv_',
-    avatar: 'https://avatars.githubusercontent.com/u/30715153?v=4',
-    amount: '$5.00',
-  },
-  {
-    name: 'Ayokanmi Adejola',
-    github: 'Ayokanmi-Adejola',
-    x: 'ayokqnmiadejola',
-    avatar: 'https://avatars.githubusercontent.com/u/191106326?v=4',
-    amount: '$2.00',
-  },
-];
+type SponsorState =
+  | { status: 'loading' }
+  | { status: 'loaded'; sponsors: Sponsor[] }
+  | { status: 'error'; message: string; code?: string };
 
 const Sponsors = () => {
+  const [state, setState] = useState<SponsorState>({ status: 'loading' });
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadSponsors = async () => {
+      try {
+        const response = await fetch('/api/sponsors', {
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          setState({
+            status: 'error',
+            code: typeof result.code === 'string' ? result.code : undefined,
+            message:
+              typeof result.error === 'string'
+                ? result.error
+                : 'Sponsor information is temporarily unavailable.',
+          });
+          return;
+        }
+
+        if (
+          !Array.isArray(result.sponsors) ||
+          !result.sponsors.every(
+            (sponsor: unknown) =>
+              typeof sponsor === 'object' &&
+              sponsor !== null &&
+              'login' in sponsor &&
+              typeof sponsor.login === 'string' &&
+              'name' in sponsor &&
+              typeof sponsor.name === 'string' &&
+              'avatarUrl' in sponsor &&
+              typeof sponsor.avatarUrl === 'string' &&
+              sponsor.avatarUrl.startsWith('https://avatars.githubusercontent.com/') &&
+              'url' in sponsor &&
+              typeof sponsor.url === 'string' &&
+              sponsor.url.startsWith('https://github.com/')
+          )
+        ) {
+          throw new Error('The sponsor service returned an invalid response.');
+        }
+
+        setState({ status: 'loaded', sponsors: result.sponsors });
+      } catch (error) {
+        if (controller.signal.aborted) return;
+
+        console.error('Sponsor information could not be loaded:', error);
+        setState({
+          status: 'error',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Sponsor information is temporarily unavailable.',
+        });
+      }
+    };
+
+    loadSponsors();
+    return () => controller.abort();
+  }, []);
+
   return (
     <section id="sponsors" className="pt-8 pb-8 bg-background">
       <div className="max-w-3xl mx-auto w-full px-6">
-        {/* Header Row */}
-        <ScrollReveal className="flex items-center justify-between gap-4 mb-8">
+        <ScrollReveal className="mb-6">
           <h2 className="text-3xl font-bold text-foreground font-excon">
             Sponsors
           </h2>
-          <a
-            href="https://github.com/sponsors/codewithdhruba01"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-card border border-border rounded-xl text-sm font-medium text-foreground hover:bg-accent hover:border-neutral-500/40 transition duration-200 shadow-sm"
-          >
-            <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-            <span>Sponsor Me</span>
-          </a>
         </ScrollReveal>
 
-        {/* Sponsors Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {sponsorsData.map((sponsor, idx) => (
-            <ScrollReveal
-              key={idx}
-              delay={idx * 0.15}
-              className="h-full"
-            >
-              <div
-                className="bg-card border border-border rounded-2xl p-5 flex gap-5 items-start h-full shadow-sm"
+        {state.status === 'loading' && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground"
+          >
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+            Loading verified sponsors…
+          </div>
+        )}
+
+        {state.status === 'error' && (
+          <div
+            role="status"
+            className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground"
+          >
+            {state.code === 'NOT_CONFIGURED' ? (
+              <>
+                <p className="text-center text-sm sm:text-base">
+                  No sponsors yet — be the first to support my work!
+                </p>
+                <p className="mt-2 text-center text-xs">
+                  Automatic sponsor listing is not configured yet.
+                </p>
+              </>
+            ) : (
+              <>Sponsor information is currently unavailable. {state.message}</>
+            )}
+          </div>
+        )}
+
+        {state.status === 'loaded' && state.sponsors.length === 0 && (
+          <ScrollReveal>
+            <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm sm:text-base text-muted-foreground shadow-sm">
+              No sponsors yet — be the first to support my work!
+            </div>
+          </ScrollReveal>
+        )}
+
+        {state.status === 'loaded' && state.sponsors.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {state.sponsors.map((sponsor, index) => (
+              <ScrollReveal
+                key={sponsor.login}
+                delay={index * 0.15}
+                className="h-full"
               >
-                <div className="flex flex-col border border-border rounded-xl p-2 items-center w-20 sm:w-24 shrink-0 bg-transparent">
-                  {/* Avatar wrapper box with its own border */}
-                  <div className="w-full aspect-square rounded-lg overflow-hidden border border-border bg-muted">
-                    <img
-                      src={sponsor.avatar}
-                      alt={sponsor.name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
+                <a
+                  href={sponsor.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-full items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm transition-colors hover:bg-accent"
+                >
+                  <img
+                    src={sponsor.avatarUrl}
+                    alt=""
+                    className="h-14 w-14 shrink-0 rounded-full border border-border object-cover"
+                    loading="lazy"
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate text-base font-bold font-outfit text-foreground">
+                      {sponsor.name}
+                    </span>
+                    <span className="mt-1 block truncate text-sm text-muted-foreground">
+                      @{sponsor.login}
+                    </span>
+                  </span>
+                  <Heart
+                    aria-hidden="true"
+                    className="ml-auto h-4 w-4 shrink-0 fill-rose-500 text-rose-500"
+                  />
+                </a>
+              </ScrollReveal>
+            ))}
+          </div>
+        )}
 
-                  {/* Horizontal Divider touching the edges */}
-                  <hr className="w-[calc(100%+16px)] -mx-2 border-t border-border my-2" />
-
-                  {/* Amount box with its own border */}
-                  <div className="w-full py-1 border border-border bg-muted/40 rounded-lg text-[#00DC82] text-sm sm:text-base font-bold font-mono text-center leading-none">
-                    {sponsor.amount}
-                  </div>
-                </div>
-
-                {/* Right Column: Name & Social Link Box Container */}
-                <div className="flex flex-col gap-2.5 flex-1 min-w-0">
-                  {/* Title (Sponsor Name) */}
-                  <h3 className="text-base sm:text-lg font-bold font-outfit text-foreground truncate leading-tight ml-1">
-                    {sponsor.name}
-                  </h3>
-
-                  {/* Nested Box enclosing the handles */}
-                  <div className="border border-border rounded-xl p-3 flex flex-col gap-2 bg-transparent">
-                    {/* GitHub Handle Box */}
-                    <a
-                      href={`https://github.com/${sponsor.github}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 px-3 py-2 bg-transparent border border-border rounded-lg text-foreground/80 hover:text-foreground hover:bg-accent text-xs sm:text-sm cursor-pointer transition-colors duration-150"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="w-3.5 h-3.5 fill-none stroke-current text-muted-foreground"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77A5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
-                      </svg>
-                      <span className="truncate">{sponsor.github}</span>
-                    </a>
-
-                    {/* X / Twitter Handle Box */}
-                    <a
-                      href={`https://x.com/${sponsor.x}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 px-3 py-2 bg-transparent border border-border rounded-lg text-foreground/80 hover:text-foreground hover:bg-accent text-xs sm:text-sm cursor-pointer transition-colors duration-150"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="w-3.5 h-3.5 fill-current text-muted-foreground"
-                      >
-                        <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584l-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
-                      </svg>
-                      <span className="truncate">{sponsor.x}</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
+        <ScrollReveal className="mt-6 flex justify-center">
+          <a
+            href="https://github.com/rahulde2007/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-1.5 text-sm font-medium font-hanken text-foreground shadow-sm transition-all duration-200 hover:bg-accent"
+          >
+            Become a Sponsor
+            <ArrowRight
+              aria-hidden="true"
+              className="h-4 w-4 transition-transform group-hover:translate-x-1"
+            />
+          </a>
+        </ScrollReveal>
       </div>
     </section>
   );

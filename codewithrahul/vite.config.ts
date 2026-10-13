@@ -5,6 +5,7 @@ import {
   getContributionCalendar,
   isSupportedContributionYear,
 } from './src/lib/githubContributions'
+import sponsorsHandler from './api/sponsors'
 
 const githubContributionsApi = (): Plugin => ({
   name: 'github-contributions-api',
@@ -38,10 +39,32 @@ const githubContributionsApi = (): Plugin => ({
   },
 });
 
+const sponsorsApi = (): Plugin => ({
+  name: 'sponsors-api',
+  configureServer(server) {
+    server.middlewares.use('/api/sponsors', async (req, res) => {
+      res.setHeader('Content-Type', 'application/json');
+      await sponsorsHandler(req, {
+        status(code) {
+          res.statusCode = code;
+          return this;
+        },
+        setHeader(name, value) {
+          res.setHeader(name, value);
+        },
+        json(body) {
+          res.end(JSON.stringify(body));
+        },
+      });
+    });
+  },
+});
+
 export default defineConfig({
   plugins: [
     { enforce: 'pre', ...mdx() },
     react(),
     githubContributionsApi(),
+    sponsorsApi(),
   ],
 })

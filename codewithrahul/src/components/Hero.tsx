@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Earth, FileText } from 'lucide-react';
+import { Earth, FileText, UserRound } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   GithubIcon,
@@ -358,11 +358,7 @@ const Hero = () => {
             to="/about"
             className="flex items-center gap-1.5 px-3.5 py-2 font-hanken rounded-lg bg-neutral-800 dark:bg-foreground hover:bg-zinc-700 dark:hover:bg-foreground/90 text-white dark:text-background font-medium text-xs transition-all duration-200 shadow-sm"
           >
-            <img
-              src={avatarTheme === 'logo' ? '/assets/avaterlogo.webp' : '/assets/avater.webp'}
-              alt="Avatar"
-              className="w-4 h-4 rounded-full object-cover"
-            />
+            <UserRound className="w-4 h-4" aria-hidden="true" />
             About Me
           </Link>
         </div>

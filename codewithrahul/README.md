@@ -98,6 +98,17 @@ your production hosting environment and redeploy. The form reports success only
 after Formspree accepts the submission; without a configured form ID, it shows
 an explicit setup error instead.
 
+### Sponsor listing
+
+The Sponsors section only displays public, active sponsors returned by GitHub's
+GraphQL `sponsorshipsAsMaintainer` field for `rahulde2007`. Configure GitHub
+Sponsors for that account and set a GitHub token with the required `read:user`
+permission as the server-side `GITHUB_TOKEN` environment variable in `.env.local`
+for local development and in the Vercel project settings for deployment. Never
+name this variable with a `VITE_` prefix. Without setup, the section shows an
+honest empty state and does not show fabricated sponsor information. Sponsor
+results are cached for five minutes.
+
 ## Contributing
 
 We welcome contributions! Please follow these steps:
