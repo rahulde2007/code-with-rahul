@@ -2,8 +2,8 @@
 **/node_modules/
 
 # Production build output
-/codewithrahul/dist/
-/codewithrahul/build/
+/dist/
+/build/
 
 # Local environment variables and secrets
 **/.env

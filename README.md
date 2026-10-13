@@ -91,25 +91,24 @@ These technologies and tools are represented in the portfolio's skills section.
 
 ## Run locally
 
-The portfolio application is in [`codewithrahul/`](./codewithrahul/). Use Node.js
-and npm, then run:
+The portfolio application is at the repository root. Use Node.js and npm, then
+run:
 
 ```bash
-cd codewithrahul
 npm ci
-cp .env.example .env.local
 npm run dev
 ```
 
 Open the local URL printed by Vite. To create and preview a production build,
-run `npm run build` and then `npm run preview` from `codewithrahul/`.
+run `npm run build` and then `npm run preview` from the repository root.
 
 The contact form requires a Formspree form ID in `VITE_FORMSPREE_FORM_ID`.
 Supabase-backed features use `VITE_SUPABASE_URL` and
 `VITE_SUPABASE_ANON_KEY`. The Sponsors section can use a server-side
 `GITHUB_TOKEN` with the required GitHub permissions; keep it out of
 frontend-accessible `VITE_` variables. Configure only the integrations you use
-in `.env.local` and in your deployment environment. Never commit real secrets.
+in `.env.local` and in your deployment environment. Start from `.env.example`
+when setting up a new checkout. Never commit real secrets.
 
 ## GitHub activity
 
