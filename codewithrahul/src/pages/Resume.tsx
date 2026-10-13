@@ -35,13 +35,7 @@ const Resume = () => {
     };
   }, []);
 
-  const pdfUrl = '/assets/Dhrubaraj-Resume.pdf';
-
-  const googleDriveEmbedUrl =
-    'https://drive.google.com/file/d/1TgvTdHcIS5NU6A7DsnAnLPkUeR1rB693/preview';
-
-  const pdfDownloadUrl =
-    'https://drive.google.com/uc?export=download&id=1TgvTdHcIS5NU6A7DsnAnLPkUeR1rB693';
+  const pdfUrl = '/assets/RAHUL%20DE%20RESUME.pdf';
 
   const onDocumentLoadSuccess = useCallback(() => {
     // Gradually remove blur after a short delay
@@ -57,8 +51,8 @@ const Resume = () => {
 
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = pdfDownloadUrl;
-    link.download = 'Dhrubaraj_Resume.pdf';
+    link.href = pdfUrl;
+    link.download = 'Rahul_De_Resume.pdf';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -85,7 +79,7 @@ const Resume = () => {
             <div ref={containerRef} className="relative bg-white rounded-lg shadow-2xl border border-border overflow-hidden w-full">
               {showFallback ? (
                 <iframe
-                  src={googleDriveEmbedUrl}
+                  src={pdfUrl}
                   className="w-full h-[65vh] sm:h-[90vh] border-0"
                   title="Resume Viewer"
                   allowFullScreen

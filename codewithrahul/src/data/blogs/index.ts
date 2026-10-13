@@ -2,7 +2,7 @@
 
 export const chromeKeyboardShortcuts = {
   title: '10 Chrome Keyboard Shortcuts to Boost Your Productivity',
-  date: 'October 6, 2025',
+  date: 'October 9, 2026',
   author: 'Rahul De',
   category: 'Productivity',
   readTime: '15 min read',
@@ -21,7 +21,7 @@ export const chromeKeyboardShortcuts = {
 export const essentialLinuxCommands = {
   title:
     'Essential Linux Commands: A Comprehensive Guide (50 Commands with Examples)',
-  date: 'Dec 8, 2025',
+  date: 'October 19, 2026',
   author: 'Rahul De',
   category: 'Linux',
   readTime: '10 min read',
@@ -39,7 +39,7 @@ export const essentialLinuxCommands = {
 
 export const essentialToolsForNextJsAndReact = {
   title: 'Essential Tools & Components for Your Next.js/React Projects',
-  date: 'February 11, 2026',
+  date: 'September 19, 2026',
   author: 'Rahul De',
   category: 'Resources',
   readTime: '15 min read',
@@ -52,7 +52,7 @@ export const essentialToolsForNextJsAndReact = {
 
 export const howNextAuthWorks = {
   title: 'How NextAuth.js Works',
-  date: 'January 31, 2026',
+  date: 'September 29, 2026',
   author: 'Rahul De',
   category: 'Web Development',
   readTime: '10 min read',
@@ -65,7 +65,7 @@ export const howNextAuthWorks = {
 export const howToWorkWithMcpServer = {
   title: 'How to Work MCP Server',
   description: 'A deep dive into the MCP Server, how it connects AI models with external tools, and build your own MCP server.',
-  date: 'August 1, 2026',
+  date: 'August 20, 2026',
   author: 'Rahul De',
   category: 'Development',
   readTime: '12 min read',
@@ -78,7 +78,7 @@ export const howToWorkWithMcpServer = {
 export const openweatherApiGuide = {
   title:
     'The Ultimate Guide to OpenWeather API: From Zero to Production in 2025',
-  date: 'October 8, 2025',
+  date: 'October 29, 2026',
   author: 'Rahul De',
   category: 'API',
   readTime: '15 min read',
@@ -96,7 +96,7 @@ export const openweatherApiGuide = {
 
 export const ragAiChatbot = {
     title: 'Rag Base Chatbot Using Local Data',
-    date: 'March 07, 2026',
+    date: 'September 9, 2026',
     author: 'Rahul De',
     category: 'AI & Machine Learning',
     readTime: '12 min read',
@@ -108,7 +108,7 @@ export const ragAiChatbot = {
 
 export const theUnspokenRealityOfTier3Colleges = {
   title: "Average College Student life",
-  date: 'June 23, 2026',
+  date: 'August 30, 2026',
   author: 'Rahul De',
   category: 'College Life',
   readTime: '6 min read',
@@ -139,7 +139,7 @@ export type BlogPost = {
 export const practicalUiRulesForBetterInterfaces = {
   title: 'Practical UI Rules for Better Interfaces',
   description: 'Practical principles that developers and designers can use to create interfaces that feel consistent, accessible, responsive, and intentional.',
-  date: 'September 18, 2026',
+  date: 'August 10, 2026',
   author: 'Rahul De',
   category: 'UI/UX',
   readTime: '10 min read',

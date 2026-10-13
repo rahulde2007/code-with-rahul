@@ -39,7 +39,7 @@ const Certificates = () => {
       title: 'Postman API Fundamentals Student Expert',
       issuer: 'Postman',
       date: '06.2025',
-      href: 'https://badges.parchment.com/public/assertions/wr0NTzwXSZiEuORGzNlwVg?utm_source=url_copy&identity__email=patidhrubaraj%40gmail.com',
+      href: 'https://badges.parchment.com/public/assertions/wr0NTzwXSZiEuORGzNlwVg?utm_source=url_copy&identity__email=rahulde937%40gmail.com',
       logo: '/company/postman.png',
       details: [
         'Mastered core API concepts: HTTP methods, response codes, query parameters, headers, and body structures.',

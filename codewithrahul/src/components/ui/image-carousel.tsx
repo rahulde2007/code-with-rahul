@@ -92,7 +92,7 @@ export const ImageCarousel = ({ images, className = '' }: ImageCarouselProps) =>
                   }}
                 >
                   <p className="text-white text-sm font-semibold tracking-wide">Image {index + 1}</p>
-                  <p className="text-gray-200 text-xs mt-1 opacity-90">codewithdhruba</p>
+                  <p className="text-gray-200 text-xs mt-1 opacity-90">Rahul De</p>
                   <div className="w-8 h-0.5 bg-white mt-2 rounded-full transform transition-all duration-500 ease-out"
                     style={{ transform: hoveredIndex === index ? 'scaleX(1)' : 'scaleX(0)', transformOrigin: 'left' }} />
                 </div>

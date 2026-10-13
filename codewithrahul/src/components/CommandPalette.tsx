@@ -262,7 +262,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose: propOn
       shortcut: 'Shift+E',
       category: 'actions',
       action: () => {
-        navigator.clipboard.writeText('pati.dhrubaraj@outlook.com');
+        navigator.clipboard.writeText('rahulde937@gmail.com');
         onClose();
       }
     },

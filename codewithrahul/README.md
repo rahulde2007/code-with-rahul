@@ -1,4 +1,4 @@
-#  Dhrubaraj Portfolio
+#  Rahul De Portfolio
   
   [![React](https://img.shields.io/badge/React-18.2.0-blue.svg)](https://reactjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.2.2-blue.svg)](https://www.typescriptlang.org/)
@@ -114,6 +114,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 
 <div align="center">
-  <p>Made with ❤️ by Dhrubaraj</p>
+  <p>Made with ❤️ by Rahul De</p>
   <p>⭐ Star this repository if you found it helpful!</p>
 </div>

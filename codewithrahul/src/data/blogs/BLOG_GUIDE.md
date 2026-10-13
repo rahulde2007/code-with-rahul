@@ -85,7 +85,7 @@ Place your blog image in the `public/blog/` folder. Make sure:
 |-------|------|-------------|---------|
 | `title` | string | Blog post title | `"Getting Started with React"` |
 | `date` | string | Publication date | `"December 25, 2025"` |
-| `author` | string | Author name | `"Dhrubaraj Pati"` |
+| `author` | string | Author name | `"Rahul De"` |
 | `category` | string | Main category | `"Development"` |
 | `readTime` | string | Estimated read time | `"5 min read"` |
 | `image` | string | Image path | `"/blog/my-post.png"` |
@@ -173,7 +173,7 @@ If you encounter issues:
 export const reactBestPractices = {
   title: 'React Best Practices for 2025',
   date: 'January 15, 2025',
-  author: 'Dhrubaraj Pati',
+  author: 'Rahul De',
   category: 'Development',
   readTime: '8 min read',
   image: '/blog/react-best-practices.png',
