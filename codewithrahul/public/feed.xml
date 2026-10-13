@@ -5,7 +5,7 @@
     <link>https://codewithdhruba.in/blog</link>
     <description>Exploring the art of engineering, the craft of code, and building impactful tech.</description>
     <language>en</language>
-    <lastBuildDate>Sun, 27 Sep 2026 09:22:20 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 13 Oct 2026 08:44:04 GMT</lastBuildDate>
     <atom:link href="https://codewithdhruba.in/feed.xml" rel="self" type="application/rss+xml" />
     
     <item>
@@ -33,7 +33,7 @@
       <pubDate>Mon, 22 Jun 2026 18:30:00 GMT</pubDate>
       <description><![CDATA[I am a student at a Tier 3 college myself. So this article is not written from the perspective of an outsider, but from the experiences, observations, and realities I have witnessed firsthand.
 
-Many...]]></description>
+Many p...]]></description>
       <category>College Life</category>
       <dc:creator>Rahul De</dc:creator>
     </item>
@@ -44,7 +44,7 @@ Many...]]></description>
       <pubDate>Fri, 06 Mar 2026 18:30:00 GMT</pubDate>
       <description><![CDATA[When I started exploring the latest advancements in Artificial Intelligence, one concept kept appearing repeatedly — RAG Retrieval Augmented Generation.
 
-RAG is a powerful technique that combines in...]]></description>
+RAG is a powerful technique that combines info...]]></description>
       <category>AI &amp; Machine Learning</category>
       <dc:creator>Rahul De</dc:creator>
     </item>
@@ -55,7 +55,7 @@ RAG is a powerful technique that combines in...]]></description>
       <pubDate>Tue, 10 Feb 2026 18:30:00 GMT</pubDate>
       <description><![CDATA[The Modern Frontend Stack: Must-Have Tools
 
-The frontend ecosystem changes rapidly, but a stable, high-performance stack has emerged around Next.js and React. Building modern web applications is no...]]></description>
+The frontend ecosystem changes rapidly, but a stable, high-performance stack has emerged around Next.js and React. Building modern web applications is no l...]]></description>
       <category>Resources</category>
       <dc:creator>Rahul De</dc:creator>
     </item>
@@ -66,7 +66,7 @@ The frontend ecosystem changes rapidly, but a stable, high-performance stack has
       <pubDate>Fri, 30 Jan 2026 18:30:00 GMT</pubDate>
       <description><![CDATA[Introduction
 
-Authentication is a crucial part of modern web applications. Implementing secure login, session handling, OAuth integration like Google or GitHub login, and user management manually c...]]></description>
+Authentication is a crucial part of modern web applications. Implementing secure login, session handling, OAuth integration like Google or GitHub login, and user management manually can...]]></description>
       <category>Web Development</category>
       <dc:creator>Rahul De</dc:creator>
     </item>
@@ -86,7 +86,7 @@ Authentication is a crucial part of modern web applications. Implementing secure
       <pubDate>Tue, 07 Oct 2025 18:30:00 GMT</pubDate>
       <description><![CDATA[Build production-ready weather applications with the world's most reliable weather data service
 
-"Weather data isn't just information—it's the foundation of intelligent applications that adapt to re...]]></description>
+"Weather data isn't just information—it's the foundation of intelligent applications that adapt to real...]]></description>
       <category>API</category>
       <dc:creator>Rahul De</dc:creator>
     </item>

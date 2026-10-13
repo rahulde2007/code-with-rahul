@@ -1,68 +1,36 @@
-import { request, gql } from 'graphql-request';
+import {
+  getContributionCalendar,
+  isSupportedContributionYear,
+} from '../src/lib/githubContributions';
 
-export default async function handler(req: any, res: any) {
+interface ApiRequest {
+  method?: string;
+  query: Record<string, string | string[] | undefined>;
+}
+
+interface ApiResponse {
+  status(code: number): ApiResponse;
+  setHeader(name: string, value: string): void;
+  json(body: unknown): void;
+}
+
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { year } = req.query;
-  const GITHUB_USERNAME = 'codewithdhruba01';
-  // Use GITHUB_TOKEN instead of VITE_GITHUB_TOKEN
-  const TOKEN = process.env.GITHUB_TOKEN || process.env.VITE_GITHUB_TOKEN; 
-
-  if (!TOKEN) {
-    return res.status(500).json({ error: 'GitHub token is missing' });
+  const yearValue = req.query.year;
+  const year = Array.isArray(yearValue) ? yearValue[0] : yearValue;
+  if (!year || (year !== 'Default' && !isSupportedContributionYear(year))) {
+    return res.status(400).json({ error: 'Invalid contribution period' });
   }
 
-  const endpoint = 'https://api.github.com/graphql';
-
-  const query = year === 'Default' || !year
-    ? gql`
-        query {
-          user(login: "${GITHUB_USERNAME}") {
-            contributionsCollection {
-              contributionCalendar {
-                totalContributions
-                weeks {
-                  contributionDays {
-                    date
-                    contributionCount
-                  }
-                }
-              }
-            }
-          }
-        }
-      `
-    : gql`
-        query {
-          user(login: "${GITHUB_USERNAME}") {
-            contributionsCollection(
-              from: "${year}-01-01T00:00:00Z"
-              to: "${year}-12-31T23:59:59Z"
-            ) {
-              contributionCalendar {
-                totalContributions
-                weeks {
-                  contributionDays {
-                    date
-                    contributionCount
-                  }
-                }
-              }
-            }
-          }
-        }
-      `;
-
   try {
-    const data = await request(endpoint, query, {}, { Authorization: `Bearer ${TOKEN}` });
-    
-    // Cache the response on Vercel Edge for 1 hour to prevent GitHub API rate limiting
+    const calendar = await getContributionCalendar(year);
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-    res.status(200).json(data);
+    return res.status(200).json(calendar);
   } catch (error) {
-    console.error('GitHub API Error:', error);
-    res.status(500).json({ error: 'Failed to fetch GitHub contributions' });
+    console.error('GitHub contribution calendar request failed:', error);
+    return res.status(502).json({ error: 'GitHub contribution activity is unavailable' });
   }
 }

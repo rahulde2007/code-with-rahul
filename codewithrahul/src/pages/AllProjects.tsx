@@ -4,17 +4,21 @@ import ScrollReveal from '../components/ui/ScrollReveal';
 import CategorySelector from '../components/ui/CategorySelector';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { projects } from '../constants/projects';
+import { projects, type ProjectFilterCategory } from '../constants/projects';
 
-const categories = [
+type ProjectListingCategory = 'All' | ProjectFilterCategory;
+
+const categories: ProjectListingCategory[] = [
   'All',
   'Full Stack',
   'Frontend',
+  'Backend',
   'Mobile App',
   'Bot Development',
   'Game',
   'Utility',
   'AI/ML',
+  'Other',
 ];
 
 const SkeletonListItem = () => (
@@ -29,13 +33,11 @@ const SkeletonListItem = () => (
 );
 
 const calculateProjectCategoryCounts = () => {
-  const counts: Record<string, number> = {};
+  const counts: Partial<Record<ProjectFilterCategory, number>> = {};
 
   projects.forEach(project => {
-    project.tags.forEach(tag => {
-      if (categories.includes(tag)) {
-        counts[tag] = (counts[tag] || 0) + 1;
-      }
+    project.filterCategories.forEach(category => {
+      counts[category] = (counts[category] || 0) + 1;
     });
   });
 
@@ -51,7 +53,8 @@ const calculateProjectCategoryCounts = () => {
 const projectTags = calculateProjectCategoryCounts();
 
 const AllProjects = () => {
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] =
+    useState<ProjectListingCategory>('All');
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
@@ -65,7 +68,9 @@ const AllProjects = () => {
   const filteredProjects =
     selectedCategory === 'All'
       ? projects
-      : projects.filter((project) => project.tags.includes(selectedCategory));
+      : projects.filter((project) =>
+          project.filterCategories.includes(selectedCategory),
+        );
 
   const visibleProjects = showAll
     ? filteredProjects
@@ -91,7 +96,9 @@ const AllProjects = () => {
           tags={projectTags}
           selectedCategory={selectedCategory}
           onSelectCategory={(category) => {
-            setSelectedCategory(category);
+            const nextCategory = categories.find((item) => item === category);
+            if (!nextCategory) return;
+            setSelectedCategory(nextCategory);
             setShowAll(false);
             setLoading(true);
           }}
@@ -107,32 +114,40 @@ const AllProjects = () => {
           >
             {loading ? (
               <div className="flex flex-col gap-1">
-                {Array(showAll ? filteredProjects.length : initialCount)
+                {Array(Math.min(showAll ? filteredProjects.length : initialCount, filteredProjects.length))
                   .fill(0)
                   .map((_, i) => <SkeletonListItem key={i} />)}
               </div>
             ) : (
               <div className="flex flex-col gap-1">
-                {visibleProjects.map((project, idx) => (
-                  <ScrollReveal key={idx} delay={idx * 0.05} className="group">
-                    <Link
-                      to={`/projects/${project.slug}`}
-                      className="block outline-none p-4 -mx-4 rounded-2xl hover:bg-accent transition-colors duration-300"
-                    >
-                      <div className="flex flex-col md:flex-row md:justify-between md:items-baseline gap-1 md:gap-4 mb-2 md:mb-1">
-                        <h3 className="text-xl font-semibold font-hanken text-foreground transition-colors duration-200">
-                          {project.title.split(' - ')[0]}
-                        </h3>
-                        <span className="text-muted-foreground text-sm md:text-base font-hanken whitespace-nowrap">
-                          {project.date}
-                        </span>
-                      </div>
-                      <p className="text-muted-foreground leading-relaxed text-[0.95rem] font-hanken">
-                        {project.description}
-                      </p>
-                    </Link>
-                  </ScrollReveal>
-                ))}
+                {visibleProjects.length > 0 ? (
+                  visibleProjects.map((project, idx) => (
+                    <ScrollReveal key={project.slug} delay={idx * 0.05} className="group">
+                      <Link
+                        to={`/projects/${project.slug}`}
+                        className="block outline-none p-4 -mx-4 rounded-2xl hover:bg-accent transition-colors duration-300"
+                      >
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-baseline gap-1 md:gap-4 mb-2 md:mb-1">
+                          <h3 className="text-xl font-semibold font-hanken text-foreground transition-colors duration-200">
+                            {project.title.split(' - ')[0]}
+                          </h3>
+                          {project.date && (
+                            <span className="text-muted-foreground text-sm md:text-base font-hanken whitespace-nowrap">
+                              {project.date}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground leading-relaxed text-[0.95rem] font-hanken">
+                          {project.description}
+                        </p>
+                      </Link>
+                    </ScrollReveal>
+                  ))
+                ) : (
+                  <p className="py-8 text-center font-hanken text-sm text-muted-foreground">
+                    No projects in this category yet.
+                  </p>
+                )}
               </div>
             )}
           </motion.div>

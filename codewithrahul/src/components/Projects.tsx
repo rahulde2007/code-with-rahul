@@ -4,7 +4,7 @@ import ScrollReveal from './ui/ScrollReveal';
 import { projects } from '../constants/projects';
 
 const Projects = () => {
-  const featuredProjects = projects.slice(0, 2);
+  const featuredProjects = projects;
 
   return (
     <section id="projects" className="pt-1 pb-6 md:pb-8 bg-background">
@@ -30,9 +30,11 @@ const Projects = () => {
                   <h3 className="text-xl font-semibold font-hanken text-foreground transition-colors duration-200">
                     {project.title.split(' - ')[0]}
                   </h3>
-                  <span className="text-muted-foreground text-sm md:text-base font-hanken">
-                    {project.date}
-                  </span>
+                  {project.date && (
+                    <span className="text-muted-foreground text-sm md:text-base font-hanken">
+                      {project.date}
+                    </span>
+                  )}
                 </div>
                 <p className="text-muted-foreground leading-relaxed text-[0.95rem] font-hanken">
                   {project.description}

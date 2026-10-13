@@ -151,7 +151,7 @@ export function getMetaForPath(pathname: string): PageMeta | null {
       return {
         title: `${project.title} - Overview`,
         description: project.description,
-        image: project.image,
+        image: project.image ?? staticPages['/projects'].image,
       };
     }
   }

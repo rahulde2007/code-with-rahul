@@ -23,7 +23,7 @@ function ExperienceList({ experiences }: ExperienceListProps) {
     );
   }
 
-  // Slice to only show the top 3 experiences on the homepage, matching ramx.in behavior
+  // Show the three entries in the featured homepage section.
   const featuredExperiences = experiences.slice(0, 3);
 
   return (
@@ -47,7 +47,7 @@ const Experience = () => {
       <div className="max-w-3xl mx-auto w-full px-6">
         <ScrollReveal className="mb-4">
           <h4 className="text-2xl md:text-2xl font-extrabold text-foreground text-left font-hanken">
-            Experience
+            Experience &amp; Contributions
           </h4>
         </ScrollReveal>
 

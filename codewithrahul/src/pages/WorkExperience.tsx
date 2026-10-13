@@ -16,10 +16,10 @@ const WorkExperience = () => {
                 <ScrollReveal>
                     <div className="text-left mb-10">
                         <h2 className="text-3xl md:text-4xl font-bold font-hanken mb-3 text-foreground">
-                            Work Experience
+                            All Experiences
                         </h2>
                         <p className="text-muted-foreground mt-2 text-sm md:text-base font-hanken font-medium">
-                            My work experiences across different companies and roles.
+                            My journey through personal projects, open-source contributions, and continuous learning.
                         </p>
                     </div>
                 </ScrollReveal>
@@ -29,7 +29,7 @@ const WorkExperience = () => {
                     <ScrollReveal delay={0.1}>
                         <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
                             <p className="text-xl sm:text-xl text-foreground font-hanken font-medium">
-                                All Experiences
+                                Experience &amp; Contributions
                             </p>
                             <span className="text-muted-foreground text-sm font-hanken font-medium">
                                 {experiences.length} experiences
