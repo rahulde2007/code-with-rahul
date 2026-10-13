@@ -13,7 +13,7 @@ export type PageMeta = {
 
 const staticPages: Record<string, PageMeta> = {
   '/': {
-    title: 'Dhrubaraj Pati - Full Stack Web Developer',
+    title: 'Rahul De - Full Stack Web Developer',
     description:
       "I'm a Full Stack web developer and open source contributor. I love building products to solve real-world problems. Explore my work.",
     image: '/meta/home.jpeg',
@@ -42,7 +42,7 @@ const staticPages: Record<string, PageMeta> = {
   },
   '/resume': {
     title: 'Resume - Journey of a Developer',
-    description: 'View Dhrubaraj Pati\'s professional resume and CV. Technical skills, experience, and qualifications.',
+    description: 'View Rahul De\'s professional resume and CV. Technical skills, experience, and qualifications.',
     image: '/meta/resume.png',
   },
   '/experience': {
@@ -162,7 +162,7 @@ export function getMetaForPath(pathname: string): PageMeta | null {
     const book = bookThoughtsData[slug as keyof typeof bookThoughtsData] as any;
     if (book) {
       return {
-        title: `${book.title} | Book Thoughts | Dhrubaraj Pati`,
+        title: `${book.title} | Book Thoughts | Rahul De`,
         description: book.description
           ? book.description.substring(0, 150) + '...'
           : `My key takeaways, notes, and personal thoughts on ${book.title} by ${book.author}.`,

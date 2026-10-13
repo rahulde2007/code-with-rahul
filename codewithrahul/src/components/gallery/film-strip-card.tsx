@@ -10,8 +10,8 @@ export type FilmStripCardProps = Readonly<
 
 const defaultFrames = [
   "/assets/photo2.webp",
-  "/assets/photo3.webp",
   "/assets/photo4.webp",
+  "/assets/my.pdf",
   "/assets/photo1.webp",
   "/assets/photo6.webp",
 ];
@@ -81,11 +81,19 @@ export const FilmStripCard = forwardRef<HTMLDivElement, FilmStripCardProps>(
               key={src}
               className="relative shrink-0 overflow-hidden border-2 sm:border-[3px] border-border rounded-sm h-[90px] w-[72px] sm:h-[110px] sm:w-[88px] md:h-[145px] md:w-[116px] bg-muted/40 transition-colors duration-300"
             >
-              <img
-                src={src}
-                alt={`Frame ${frameNumber + 1}`}
-                className="w-full h-full object-cover"
-              />
+              {src.endsWith(".pdf") ? (
+                <iframe
+                  src={src}
+                  title={`PDF preview, frame ${frameNumber + 1}`}
+                  className="block w-full h-full border-0"
+                />
+              ) : (
+                <img
+                  src={src}
+                  alt={`Frame ${frameNumber + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              )}
               <span className="absolute bottom-0.5 left-0.5 sm:bottom-1 sm:left-1 bg-black/70 text-white px-1 py-0.5 sm:px-1.5 text-[7px] sm:text-[9px] rounded-sm font-mono">
                 {String(frameNumber + 1).padStart(2, "0")}
               </span>

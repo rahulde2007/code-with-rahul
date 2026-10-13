@@ -5,9 +5,6 @@ import {
   LinkedinIcon,
   XIcon,
   InstagramIcon,
-  ThreadsIcon,
-  BlueskyLine,
-  CodepenIcon,
 } from '../icons/SocialIcons';
 import { commentService } from '../../lib/supabase';
 
@@ -33,42 +30,21 @@ const navigateLinks = [
 
 const socialLinks = [
   {
-    href: 'https://x.com/codewithdhruba',
+    href: 'https://x.com/rahulde_937',
     icon: <XIcon size="18" className="fill-muted-foreground group-hover:fill-foreground transition-colors duration-300" />
   },
   {
-    href: 'https://www.linkedin.com/in/dhrubaraj-pati/',
+    href: 'https://www.linkedin.com/in/rahul-de-r6294520571?utm_source=share_via&utm_content=profile&utm_medium=member_android',
     icon: <LinkedinIcon size="21" className="stroke-muted-foreground group-hover:stroke-foreground transition-colors duration-300" />
   },
   {
-    href: 'https://github.com/codewithdhruba01',
+    href: 'https://github.com/rahulde2007/',
     icon: <GithubIcon size="18" className="stroke-muted-foreground group-hover:stroke-foreground transition-all duration-300" />
   },
   {
-    href: '#',
-    icon: <BlueskyLine size="18" className="fill-muted-foreground group-hover:fill-foreground transition-colors duration-300" />
-  },
-  {
-    href: 'https://www.instagram.com/codewithdhruba/',
+    href: 'https://www.instagram.com/rahulde_18/',
     icon: <InstagramIcon size="18" className="stroke-muted-foreground group-hover:stroke-foreground transition-all duration-300" />
   },
-  {
-    href: 'https://www.threads.com/@codewithdhruba',
-    icon: <ThreadsIcon size="18" className="fill-muted-foreground group-hover:fill-foreground transition-colors duration-300" />
-  },
-  {
-    href: 'https://codepen.io/codewithdhruba',
-    icon: <CodepenIcon size="18" className="stroke-muted-foreground group-hover:stroke-foreground transition-colors duration-300" />
-  },
-  {
-    href: 'mailto:codewithdhruba@gmail.com',
-    icon: (
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-muted-foreground group-hover:stroke-foreground transition-colors duration-300">
-        <rect width="20" height="16" x="2" y="4" rx="2" />
-        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-      </svg>
-    )
-  }
 ];
 
 const Footer = () => {
@@ -142,7 +118,7 @@ const Footer = () => {
 
             {/* Spotify Widget */}
             <a
-              href="https://open.spotify.com/playlist/7vcmvUAHBN1KU4KUQqDP03?si=03momC0tQ_a1SSmzOlE7-A"
+              href="https://open.spotify.com/collection/tracks"
               target="_blank"
               rel="noopener noreferrer"
               onClick={playClickSound}
@@ -193,7 +169,7 @@ const Footer = () => {
         <div className="mt-12 pt-8 relative flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-border to-transparent"></div>
           <p className="text-muted-foreground text-sm font-hanken">
-            © 2026 Dhrubaraj Pati. All rights reserved.
+            © 2026 Rahul De. All rights reserved.
           </p>
           <p className="text-muted-foreground text-sm font-hanken">
             You're the{' '}

@@ -36,12 +36,12 @@ export const AboutWorkspace = () => {
               <div className="flex flex-col gap-1 group/title w-fit cursor-default">
                 <div className="flex items-center gap-2.5">
                   <h4 className="text-lg md:text-xl font-bold font-outfit text-foreground">
-                    MacBook 13"
+                    Asus Vivobook 16" 2025
                   </h4>
                   <Tooltip>
                     <TooltipTrigger>
                       <a
-                        href="https://www.apple.com/macbook-pro/"
+                        href="https://www.flipkart.com/asus-vivobook-16-2025-office-2024-m365-basic-intel-core-i5-13th-gen-13420h-16-gb-512-gb-ssd-windows-11-home-x1605va-mb1627ws-thin-light-laptop/p/itmd74674c1c830b?pid=COMH9SJ9CF9DSGXF&lid=LSTCOMH9SJ9CF9DSGXFUGIS4G&marketplace=FLIPKART&cmpid=content_computer_24004169905_g_8965229628_gmc_pla&tgi=sem,1,G,11214002,g,search,,815466423545,,,,c,,,,,,,&entryMethod=24004169905&&cmpid=content_24004169905_gmc_pla&gad_source=1&gad_campaignid=24004169905&gbraid=0AAAAADxRY59M1ziXxeLGgJ0s40gCTjt6o&gclid=CjwKCAjwrbfWBhAeEiwAc2e6Pmfdq_iCTihiaZbbD5m-yQCT4IAzGjNGumHPOUf-8X8pc3M3Mz2eQxoCto8QAvD_BwE"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-border bg-transparent opacity-0 -translate-x-1.5 scale-90 group-hover/title:opacity-100 group-hover/title:translate-x-0 group-hover/title:scale-100 hover:border-muted-foreground transition-all duration-300 ease-out select-none cursor-pointer"
@@ -55,7 +55,7 @@ export const AboutWorkspace = () => {
                   </Tooltip>
                 </div>
                 <p className="text-xs font-mono text-[#00DC82] mt-0.5">
-                  M1 2023, 8GB Memory, 256GB SSD
+                  16GB Memory, 512GB SSD
                 </p>
                 <p className="text-muted-foreground font-satoshi text-sm md:text-base leading-relaxed mt-2">
                   My ultimate powerhouse and absolute daily driver. The
@@ -68,12 +68,12 @@ export const AboutWorkspace = () => {
               <div className="flex flex-col gap-1 group/title w-fit cursor-default">
                 <div className="flex items-center gap-2.5">
                   <h4 className="text-lg md:text-xl font-bold font-outfit text-foreground">
-                    Infinix InBook X1 14"
+                    ASUS MD100 Mouse
                   </h4>
                   <Tooltip>
                     <TooltipTrigger>
                       <a
-                        href="https://www.infinixmobility.com/"
+                        href="https://www.flipkart.com/asus-md100-marshmallow-wireless-ambidextrous-optical-mouse-upto-1600-dpi-adjustable-sensitivity-silent-click-switches-dual-mode-connectivity-concealed-carrying-strap-antimicrobial-guard-protection/p/itmc18ed8cae1b4a?pid=ACCGSBQHAC9J9Z5S&lid=LSTACCGSBQHAC9J9Z5SZOKH2L&marketplace=FLIPKART"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-border bg-transparent opacity-0 -translate-x-1.5 scale-90 group-hover/title:opacity-100 group-hover/title:translate-x-0 group-hover/title:scale-100 hover:border-muted-foreground transition-all duration-300 ease-out select-none cursor-pointer"
@@ -87,23 +87,24 @@ export const AboutWorkspace = () => {
                   </Tooltip>
                 </div>
                 <p className="text-xs font-mono text-[#00DC82] mt-0.5">
-                  Intel i5 10th Gen, 8GB RAM, 512GB SSD
+                  Marshmallow Wireless • Up to 1600 DPI • Dual-Mode Connectivity
                 </p>
                 <p className="text-muted-foreground font-satoshi text-sm md:text-base leading-relaxed mt-2">
-                  This is my secondary system, which I mostly use for testing,
-                  running lightweight tools, or as a reliable backup machine.
+                  This is my primary mouse. Its ambidextrous design, silent
+                  click switches, and dual-mode connectivity provide quiet,
+                  comfortable control for my daily workflows.
                 </p>
               </div>
 
               <div className="flex flex-col gap-1 group/title w-fit cursor-default">
                 <div className="flex items-center gap-2.5">
                   <h4 className="text-lg md:text-xl font-bold font-outfit text-foreground">
-                    BenQ™ 2K
+                    ASUS Marshmallow KW100
                   </h4>
                   <Tooltip>
                     <TooltipTrigger>
                       <a
-                        href="https://www.benq.com/"
+                        href="https://www.flipkart.com/asus-marshmallow-kw100-bluetooth-laptop-size-laptop-keyboard-compatible-desktop-laptop-mac-ipad-tablet-easy-use-plug-play-quick-comfy-durable-body/p/itm705d8efa683b4?pid=ACCGSBQCATQCHCDT&lid=LSTACCGSBQCATQCHCDTQMDOIA&marketplace=FLIPKART"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-border bg-transparent opacity-0 -translate-x-1.5 scale-90 group-hover/title:opacity-100 group-hover/title:translate-x-0 group-hover/title:scale-100 hover:border-muted-foreground transition-all duration-300 ease-out select-none cursor-pointer"
@@ -117,74 +118,12 @@ export const AboutWorkspace = () => {
                   </Tooltip>
                 </div>
                 <p className="text-xs font-mono text-[#00DC82] mt-0.5">
-                  27 Inch Monitor
+                  Green Tea Latte • Bluetooth Laptop-Size Keyboard
                 </p>
                 <p className="text-muted-foreground font-satoshi text-sm md:text-base leading-relaxed mt-2">
-                  This is my secondary display. Mounted on a solid ergonomic
-                  arm, it provides the perfect vertical or horizontal layout for
-                  referencing documentation, tracking logs, and multitasking.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-1 group/title w-fit cursor-default">
-                <div className="flex items-center gap-2.5">
-                  <h4 className="text-lg md:text-xl font-bold font-outfit text-foreground">
-                    AMKETTE Mouse
-                  </h4>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <a
-                        href="https://www.amkette.com/collections/xs-flow-series/products/xs-flow-plus-wireless-mouse"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-border bg-transparent opacity-0 -translate-x-1.5 scale-90 group-hover/title:opacity-100 group-hover/title:translate-x-0 group-hover/title:scale-100 hover:border-muted-foreground transition-all duration-300 ease-out select-none cursor-pointer"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-foreground"></span>
-                      </a>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <span className="text-xs font-mono">Link</span>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <p className="text-xs font-mono text-[#00DC82] mt-0.5">
-                  XS Series Flow{' '}
-                </p>
-                <p className="text-muted-foreground font-satoshi text-sm md:text-base leading-relaxed mt-2">
-                  This is my primary mouse. It has a highly ergonomic shape that
-                  fits perfectly in the hand, offering smooth tracking and
-                  precise control that keeps my daily workflows seamless.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-1 group/title w-fit cursor-default">
-                <div className="flex items-center gap-2.5">
-                  <h4 className="text-lg md:text-xl font-bold font-outfit text-foreground">
-                    Kreo Hive75
-                  </h4>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <a
-                        href="https://kreo-tech.com/collections/mechanical-keyboards/products/hive75-v2-black-purple-wired-mechanical-gaming-keyboard"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-border bg-transparent opacity-0 -translate-x-1.5 scale-90 group-hover/title:opacity-100 group-hover/title:translate-x-0 group-hover/title:scale-100 hover:border-muted-foreground transition-all duration-300 ease-out select-none cursor-pointer"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-foreground"></span>
-                      </a>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <span className="text-xs font-mono">Link</span>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <p className="text-xs font-mono text-[#00DC82] mt-0.5">
-                  V2 Black Purple • Mechanical Keyboard
-                </p>
-                <p className="text-muted-foreground font-satoshi text-sm md:text-base leading-relaxed mt-2">
-                  This is my primary keyboard. The satisfying tactile feedback
-                  and highly responsive layout make writing code and long typing
-                  sessions incredibly comfortable and enjoyable.
+                  This is my primary keyboard. Its Bluetooth connectivity,
+                  comfortable laptop-size layout, and durable body make typing
+                  across my devices easy and comfortable.
                 </p>
               </div>
             </div>

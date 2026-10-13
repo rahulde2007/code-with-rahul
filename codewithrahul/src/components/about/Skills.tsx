@@ -9,7 +9,6 @@ import { Java } from '../svgs/Java';
 import ReactIcon from '../svgs/ReactIcon';
 import NextJs from '../svgs/NextJs';
 import TailwindCss from '../svgs/TailwindCss';
-import Shadcn from '../svgs/Shadcn';
 import Motion from '../svgs/Motion';
 import NodeJs from '../svgs/NodeJs';
 import Bun from '../svgs/Bun';
@@ -18,8 +17,6 @@ import MongoDB from '../svgs/MongoDB';
 import Figma from '../svgs/Figma';
 import Html from '../svgs/Html';
 import CSS from '../svgs/CSS';
-import BootStrap from '../svgs/BootStrap';
-import Postman from '../svgs/Postman';
 import { VisualStudioCode } from '../svgs/VisualStudioCode';
 import Vercel from '../svgs/Vercel';
 import ExpressJs from '../svgs/ExpressJs';
@@ -41,7 +38,6 @@ const Skills = () => {
     { name: 'React', icon: ReactIcon, href: 'https://react.dev/' },
     { name: 'Next.js', icon: NextJs, href: 'https://nextjs.org/' },
     { name: 'Tailwind CSS', icon: TailwindCss, href: 'https://tailwindcss.com/' },
-    { name: 'shadcn/ui', icon: Shadcn, href: 'https://ui.shadcn.com/' },
     { name: 'Motion', icon: Motion, href: 'https://motion.dev/' },
     // Backend & DB
     { name: 'Node.js', icon: NodeJs, href: 'https://nodejs.org/' },
@@ -59,8 +55,6 @@ const Skills = () => {
     { name: 'Three.js', icon: ThreeJs, href: 'https://threejs.org/' },
     { name: 'HTML', icon: Html, href: 'https://developer.mozilla.org/en-US/docs/Web/HTML' },
     { name: 'CSS', icon: CSS, href: 'https://developer.mozilla.org/en-US/docs/Web/CSS' },
-    { name: 'Bootstrap', icon: BootStrap, href: 'https://getbootstrap.com/' },
-    { name: 'Postman', icon: Postman, href: 'https://www.postman.com/' },
     { name: 'VS Code', icon: VisualStudioCode, href: 'https://code.visualstudio.com/' },
     { name: 'Linux', icon: Linux, href: 'https://www.linux.org/' },
     { name: 'Vercel', icon: Vercel, href: 'https://vercel.com/' },

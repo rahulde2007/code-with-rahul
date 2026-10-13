@@ -37,14 +37,14 @@ const Hero = () => {
   };
 
   const handleCopyTerminal = () => {
-    navigator.clipboard.writeText('npx codewithdhruba');
+    navigator.clipboard.writeText('npx codewithrahul');
     setCopiedTerminal(true);
     setTimeout(() => setCopiedTerminal(false), 2000);
   };
 
   useEffect(() => {
     // Fetch GitHub follower count dynamically using the configured GitHub username
-    fetch('https://api.github.com/users/codewithdhruba01')
+    fetch('https://api.github.com/users/rahulde2007')
       .then((res) => res.json())
       .then((data) => {
         if (data && typeof data.followers === 'number') {
@@ -116,7 +116,7 @@ const Hero = () => {
           <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-4 border-card shadow-md bg-muted">
             <motion.img
               src="/assets/avaterlogo.webp"
-              alt="Dhrubaraj Pati"
+              alt="Rahul De"
               initial={false}
               animate={{
                 opacity: avatarTheme === 'logo' ? 1 : 0,
@@ -131,8 +131,8 @@ const Hero = () => {
               loading="eager"
             />
             <motion.img
-              src="/assets/avater.webp"
-              alt="Dhrubaraj Pati"
+              src="/assets/dp%20avater.png"
+              alt="Rahul De"
               initial={false}
               animate={{
                 opacity: avatarTheme === 'avatar' ? 1 : 0,
@@ -152,7 +152,7 @@ const Hero = () => {
             <Tooltip>
               <TooltipTrigger>
                 <a
-                  href="https://github.com/codewithdhruba01"
+                  href="https://github.com/rahulde2007/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-card/90 backdrop-blur-sm border border-border text-muted-foreground hover:text-foreground text-xs font-medium transition duration-200 select-none shadow-sm cursor-pointer"
@@ -171,19 +171,19 @@ const Hero = () => {
         <div className="mt-6 px-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bricolage font-extrabold md:text-3xl tracking-tight text-foreground flex items-center gap-2">
-              <span>Dhrubaraj Pati</span>
+              <span>Rahul De</span>
               <Tooltip>
                 <TooltipTrigger>
                   <button
                     onClick={handleCopyTerminal}
                     className="p-1 rounded-md text-muted-foreground hover:text-foreground transition-colors cursor-pointer flex items-center justify-center focus:outline-none"
-                    aria-label="Copy npx codewithdhruba"
+                    aria-label="Copy npx codewithrahul"
                   >
                     <TerminalIcon size={24} className="stroke-current" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top">
-                  <p>{copiedTerminal ? 'Copied npx codewithdhruba!' : 'npx codewithdhruba'}</p>
+                  <p>{copiedTerminal ? 'Copied npx codewithrahul!' : 'npx codewithrahul'}</p>
                 </TooltipContent>
               </Tooltip>
             </h2>
@@ -196,7 +196,7 @@ const Hero = () => {
             <Tooltip>
               <TooltipTrigger>
                 <a
-                  href="https://github.com/codewithdhruba01"
+                  href="https://github.com/rahulde2007/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2.5 rounded-full border border-border bg-card hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200 flex items-center justify-center cursor-pointer shadow-sm"
@@ -212,7 +212,7 @@ const Hero = () => {
             <Tooltip>
               <TooltipTrigger>
                 <a
-                  href="https://x.com/codewithdhruba"
+                  href="https://x.com/rahulde_937"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2.5 rounded-full border border-border bg-card hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200 flex items-center justify-center cursor-pointer shadow-sm"
@@ -228,7 +228,7 @@ const Hero = () => {
             <Tooltip>
               <TooltipTrigger>
                 <a
-                  href="https://www.linkedin.com/in/dhrubaraj-pati/"
+                  href="https://www.linkedin.com/in/rahul-de-r6294520571?utm_source=share_via&utm_content=profile&utm_medium=member_android"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2.5 rounded-full border border-border bg-card hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200 flex items-center justify-center cursor-pointer shadow-sm"
@@ -265,7 +265,7 @@ const Hero = () => {
             I build from scratch.
           </h3>
           <p className="text-muted-foreground leading-relaxed text-base font-hanken font-regular">
-            I am a <strong className="text-foreground font-hanken font-medium">22 Year Old Full-Stack Developer</strong> dedicated to building scalable, high-performance web applications with{' '}
+            I am a <strong className="text-foreground font-hanken font-medium">1 Year Old Full-Stack Developer</strong> dedicated to building scalable, high-performance web applications with{' '}
             <a
               href="https://www.typescriptlang.org/"
               target="_blank"
@@ -345,13 +345,15 @@ const Hero = () => {
 
         {/* Buttons */}
         <div className="flex flex-wrap items-center gap-3 mt-8 px-1">
-          <Link
-            to="/resume"
+          <a
+            href="/assets/RAHUL%20DE%20RESUME.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3.5 py-2 font-hanken rounded-lg border border-input bg-background hover:bg-accent hover:text-accent-foreground text-foreground font-medium text-xs transition-all duration-200 shadow-sm"
           >
             <FileText className="w-3.5 h-3.5" />
             Resume / CV
-          </Link>
+          </a>
           <Link
             to="/about"
             className="flex items-center gap-1.5 px-3.5 py-2 font-hanken rounded-lg bg-neutral-800 dark:bg-foreground hover:bg-zinc-700 dark:hover:bg-foreground/90 text-white dark:text-background font-medium text-xs transition-all duration-200 shadow-sm"

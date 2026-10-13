@@ -78,7 +78,7 @@ const Certificates = () => {
       title: 'Contributor',
       organization: 'Open Source Connect',
       date: '08.2025',
-      href: 'https://github.com/codewithdhruba01',
+      href: 'https://github.com/rahulde2007/',
       logo: '/company/OSC.png',
       details: [
         'Selected for the highly collaborative Open Source Connect India developer cohort.',

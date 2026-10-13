@@ -280,7 +280,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose: propOn
       description: 'Visit my GitHub profile',
       shortcut: 'Shift+G',
       category: 'actions',
-      action: () => window.open('https://github.com/codewithdhruba01', '_blank')
+      action: () => window.open('https://github.com/rahulde2007/', '_blank', 'noopener,noreferrer')
     },
     {
       id: 'linkedin-profile',
@@ -288,7 +288,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose: propOn
       description: 'Connect on LinkedIn',
       shortcut: 'Shift+L',
       category: 'actions',
-      action: () => window.open('https://www.linkedin.com/in/dhrubaraj-pati/', '_blank')
+      action: () => window.open('https://www.linkedin.com/in/rahul-de-r6294520571?utm_source=share_via&utm_content=profile&utm_medium=member_android', '_blank', 'noopener,noreferrer')
     },
     {
       id: 'daily-dev',

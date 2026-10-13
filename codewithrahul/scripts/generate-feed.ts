@@ -61,7 +61,7 @@ function generateRssFeed() {
   const rssFeed = `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
-    <title>Dhrubaraj Pati - Blog</title>
+    <title>Rahul De - Blog</title>
     <link>${SITE_URL}/blog</link>
     <description>Exploring the art of engineering, the craft of code, and building impactful tech.</description>
     <language>en</language>
