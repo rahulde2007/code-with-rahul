@@ -3,14 +3,10 @@
 import { useEffect } from 'react';
 import {
   Laptop,
-  Monitor,
   Keyboard,
   Mouse,
   Headphones,
   Smartphone,
-  LampDesk,
-  Usb,
-  HardDrive,
   ArrowUpRight,
 } from 'lucide-react';
 import { Devices } from '../components/svgs/Devices';
@@ -23,16 +19,11 @@ export default function Gears() {
   }, []);
 
   const devicesList = [
-    { icon: Laptop, text: "Infinix INBook X1" },
-    { icon: Monitor, text: "BenQ GW2490 (24 inch, 60.96 cm)" },
-    { icon: Keyboard, text: "Kreo Hive Mechanical Keyboard" },
-    { icon: Mouse, text: "HP Gaming Mouse M270" },
-    { icon: LampDesk, text: "AKR Desk Lamp 1740" },
-    { icon: Headphones, text: "Soundcore Anker H30i" },
-    { icon: Smartphone, text: "Motorola Edge 50 Fusion (256 GB)" },
-    { icon: Usb, text: "USB 9in1 Hub (9V555AA)" },
-    { icon: HardDrive, text: "Seagate 1TB (STKY1000400)" },
-    { icon: HardDrive, text: "SanDisk (256GB, 64GB, 32GB, 32GB)" },
+    { icon: Laptop, text: 'ASUS Vivobook 16 (2025) — Laptop' },
+    { icon: Smartphone, text: 'Motorola Moto G34 5G — Smartphone' },
+    { icon: Mouse, text: 'ASUS MD100 — Wireless Mouse' },
+    { icon: Keyboard, text: 'ASUS Marshmallow KW100 — Wireless Keyboard' },
+    { icon: Headphones, text: 'boAt Airdopes Ace Gen 2 — Wireless Earbuds' },
   ];
 
   return (
