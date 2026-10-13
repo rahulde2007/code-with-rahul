@@ -1,0 +1,94 @@
+import { CalendarDays, ArrowRight } from 'lucide-react';
+import { SectionButton } from './ui/SectionButton';
+import ScrollReveal from './ui/ScrollReveal';
+import { blogPostsData } from '../data/blogs';
+import { LinkPreview } from './ui/LinkPreview';
+
+const blogDescriptions = {
+  'practical-ui-rules-for-better-interfaces': 'Small design decisions that make websites clearer, more accessible, and easier to use.',
+  'the-unspoken-reality-of-tier-3-colleges': "An honest, perspective on the challenges, misconceptions, and realities faced by students in Tier 3 engineering colleges, and how to build a successful career anyway.",
+  'chrome-keyboard-shortcuts': 'Discover the most useful Chrome keyboard shortcuts to browse faster, save time, and increase your daily productivity.',
+  'openweather-api-guide': 'Master OpenWeather API with production-ready patterns, advanced integrations, and enterprise-grade implementations.',
+  'essential-linux-commands': 'Learn the most essential Linux commands every beginner and intermediate user must know. This comprehensive guide explains each command in simple terms.',
+  'essential-tools-for-nextjs-and-react': 'A curated list of the best UI libraries, icons, animation tools, and utilities to supercharge your Next.js and React development workflow.',
+  'rag-ai-chatbot': 'Learn how to build a personalized AI chatbot that answers questions from your own data using RAG, LangChain, and local LLMs.',
+};
+
+const blogPosts = Object.entries(blogPostsData).map(([slug, post]) => ({
+  title: post.title.replace(/:.*$/, ''),
+  description: blogDescriptions[slug as keyof typeof blogDescriptions] || 'A deep dive into the MCP Server, how it connects AI models with external tools, and build your own MCP server.',
+  date: post.date,
+  slug: slug,
+  image: post.image,
+}));
+
+const Blog = () => {
+  return (
+    <section id="blog" className="pt-8 pb-4 bg-background">
+      <div className="max-w-3xl mx-auto w-full px-6">
+        <ScrollReveal className="mb-2">
+          <h4 className="text-2xl md:text-2xl font-extrabold text-foreground text-left font-hanken">
+            Blog
+          </h4>
+        </ScrollReveal>
+
+        <div className="flex flex-col">
+          {blogPosts.slice(0, 3).map((post, index) => (
+            <ScrollReveal
+              key={index}
+              delay={index * 0.1}
+              className="w-full"
+            >
+              <LinkPreview
+                to={`/blog/${post.slug}`}
+                imageSrc={post.image}
+                onHoverChange={(hovered) => {
+                  if (hovered) {
+                    import(`../content/blog/${post.slug}.mdx`).catch(() => {});
+                  }
+                }}
+                className="group block py-6 border-b border-border last:border-b-0"
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <h3 className="text-lg font-semibold font-hanken text-foreground transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed text-[0.95rem] font-hanken">
+                      {post.description}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex items-center gap-1.5 text-muted-foreground text-sm md:text-base font-hanken leading-none">
+                        <CalendarDays size={18} className="text-muted-foreground" />
+                        <span className="pt-[1px]">{post.date}</span>
+                      </div>
+                      <div className="flex md:hidden items-center gap-1.5 text-sm font-hanken text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+                        <span>Read more</span>
+                        <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-300" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="hidden md:flex items-center shrink-0">
+                    <span className="flex items-center gap-1.5 text-sm font-hanken text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+                      Read more <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform duration-300" />
+                    </span>
+                  </div>
+                </div>
+              </LinkPreview>
+            </ScrollReveal>
+          ))}
+        </div>
+
+        <ScrollReveal
+          className="text-center mt-6"
+          delay={0.3}
+        >
+          <SectionButton to="/blog" text="Show all blogs" icon={null} />
+        </ScrollReveal>
+      </div>
+    </section>
+  );
+};
+
+export default Blog;

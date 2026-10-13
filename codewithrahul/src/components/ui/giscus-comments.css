@@ -1,0 +1,29 @@
+.giscus-wrapper {
+    margin-top: 2rem;
+}
+
+/* Custom styling for Giscus */
+.giscus-frame {
+    border-radius: 8px !important;
+    border: 1px solid hsl(var(--border)) !important;
+}
+
+/* Dark theme adjustments */
+.dark .giscus,
+.giscus {
+    --color-border-default: hsl(var(--border));
+    --color-border-muted: hsl(var(--border));
+    --color-canvas-default: hsl(var(--card));
+    --color-canvas-overlay: hsl(var(--popover));
+    --color-canvas-subtle: hsl(var(--muted));
+}
+
+/* Light theme adjustments */
+:root:not(.dark) .giscus,
+.giscus[data-theme="light"] {
+    --color-border-default: hsl(var(--border));
+    --color-border-muted: hsl(var(--border));
+    --color-canvas-default: hsl(var(--card));
+    --color-canvas-overlay: hsl(var(--popover));
+    --color-canvas-subtle: hsl(var(--muted));
+}

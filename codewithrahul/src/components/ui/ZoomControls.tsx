@@ -1,0 +1,335 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, Minus, Settings, RotateCcw } from 'lucide-react';
+
+interface ZoomControlsProps {
+  fontSize: number;
+  setFontSize: React.Dispatch<React.SetStateAction<number>>;
+  isMobileSheetOpen: boolean;
+  setIsMobileSheetOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isHidden?: boolean;
+}
+
+const ZoomControls: React.FC<ZoomControlsProps> = ({
+  fontSize,
+  setFontSize,
+  isMobileSheetOpen,
+  setIsMobileSheetOpen,
+  isHidden = false,
+}) => {
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragStartY, setDragStartY] = useState<number>(0);
+  const [currentTranslateY, setCurrentTranslateY] = useState<number>(0);
+
+  const zoomIn = () => {
+    setFontSize(prev => Math.min(prev + 5, 150)); // max 150%
+  };
+
+  const zoomOut = () => {
+    setFontSize(prev => Math.max(prev - 5, 80)); // min 80%
+  };
+
+  const resetZoom = () => {
+    setFontSize(100);
+  };
+
+  const getFontSizeInPx = () => {
+    return Math.round((fontSize / 100) * 16);
+  };
+
+  const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFontSize(parseInt(event.target.value));
+  };
+
+  const handleOpenSheet = () => {
+    setIsMobileSheetOpen(true);
+    setCurrentTranslateY(0);
+    setTimeout(() => setIsAnimating(true), 10);
+  };
+
+  const handleCloseSheet = () => {
+    setIsAnimating(false);
+    setTimeout(() => {
+      setIsMobileSheetOpen(false);
+      setCurrentTranslateY(0);
+    }, 300);
+  };
+
+  // Gesture handling functions
+  const handleDragStart = (clientY: number) => {
+    setIsDragging(true);
+    setDragStartY(clientY);
+  };
+
+  const handleDragMove = (clientY: number) => {
+    if (!isDragging) return;
+    const deltaY = clientY - dragStartY;
+    if (deltaY > 0) {
+      setCurrentTranslateY(deltaY);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const CLOSE_THRESHOLD = 100;
+    if (currentTranslateY > CLOSE_THRESHOLD) {
+      handleCloseSheet();
+    } else {
+      setCurrentTranslateY(0);
+    }
+  };
+
+  // Touch event handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    handleDragStart(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent scrolling
+    handleDragMove(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    handleDragEnd();
+  };
+
+  // Mouse event handlers (for desktop testing)
+  const handleMouseDown = (e: React.MouseEvent) => {
+    handleDragStart(e.clientY);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+      handleDragMove(e.clientY);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      handleDragEnd();
+    }
+  };
+
+  // Add global mouse event listeners when dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+    };
+  }, [isDragging, dragStartY]);
+
+  // Keyboard shortcuts for zoom
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === '=') {
+        event.preventDefault();
+        zoomIn();
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key === '-') {
+        event.preventDefault();
+        zoomOut();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [fontSize]);
+
+  if (isHidden) return null;
+
+  return (
+    <>
+      {/* Desktop Zoom Controls - Side Panel */}
+      <div className="hidden md:block fixed right-6 top-1/2 -translate-y-1/2 z-40">
+        <div className="flex flex-col items-center gap-3
+                  rounded-2xl
+                  bg-card/90
+                  backdrop-blur-xl
+                  border border-border
+                  shadow-xl
+                  px-3 py-4
+                  transition-all duration-300">
+
+          {/* Zoom In */}
+          <button
+            onClick={zoomIn}
+            disabled={fontSize >= 150}
+            className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-150 cursor-pointer ${fontSize >= 150
+              ? 'border-border bg-muted text-muted-foreground/40 opacity-40 cursor-not-allowed'
+              : 'border-border bg-muted text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm'
+              }`}
+            title="Zoom In (Ctrl/Cmd + =)"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+
+          {/* Font Size Indicator */}
+          <div className="text-xs font-bold select-none px-2.5 py-1.5 border border-border bg-card text-foreground rounded-xl min-w-[44px] text-center shadow-inner">
+            {getFontSizeInPx()}px
+          </div>
+
+          {/* Zoom Out */}
+          <button
+            onClick={zoomOut}
+            disabled={fontSize <= 80}
+            className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-150 cursor-pointer ${fontSize <= 80
+              ? 'border-border bg-muted text-muted-foreground/40 opacity-40 cursor-not-allowed'
+              : 'border-border bg-muted text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm'
+              }`}
+            title="Zoom Out (Ctrl/Cmd + -)"
+          >
+            <Minus className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Zoom Controls - Floating Settings Button */}
+      <div className="md:hidden fixed right-4 top-20 z-40">
+        <button
+          onClick={handleOpenSheet}
+          className="w-14 h-14 rounded-full
+                   bg-card/80 backdrop-blur-xl
+                   border border-border
+                   shadow-lg
+                   flex items-center justify-center
+                   hover:bg-card
+                   transition-all duration-300
+                   hover:scale-105"
+          title="Font Size Settings"
+        >
+          <Settings className="w-6 h-6 text-foreground" />
+        </button>
+      </div>
+
+      {/* Mobile Bottom Sheet */}
+      {isMobileSheetOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className={`fixed inset-0 z-50 md:hidden transition-all duration-300
+                        ${isAnimating
+                ? 'bg-black/50 backdrop-blur-sm opacity-100'
+                : 'bg-black/0 backdrop-blur-none opacity-0'
+              }`}
+            onClick={handleCloseSheet}
+          />
+
+          {/* Bottom Sheet */}
+          <div
+            className={`fixed bottom-0 left-0 right-0 z-50 md:hidden
+                        bg-card/95 backdrop-blur-xl
+                        border-t border-border
+                        rounded-t-3xl
+                        shadow-2xl
+                        transform transition-all duration-300 ease-out
+                        ${isAnimating
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-full opacity-0'
+              }`}
+            style={{
+              transform: isAnimating
+                ? `translateY(${currentTranslateY}px)`
+                : 'translateY(100%)'
+            }}
+          >
+
+            {/* Drag Handle */}
+            <div
+              className="flex justify-center pt-4 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+            >
+              <div className={`w-16 h-1.5 bg-muted-foreground/30 rounded-full transition-transform duration-200
+                            ${isDragging ? 'scale-110' : 'scale-100'}`}></div>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 pb-8 space-y-6">
+
+              {/* Current Font Size Display */}
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground mb-1">
+                  {getFontSizeInPx()}px
+                </div>
+                <div className="text-sm text-muted-foreground font-satoshi">
+                  Current font size
+                </div>
+              </div>
+
+              {/* Quick Controls */}
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={zoomOut}
+                  disabled={fontSize <= 80}
+                  className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all duration-150 cursor-pointer ${fontSize <= 80
+                    ? 'border-border bg-muted text-muted-foreground/40 opacity-40 cursor-not-allowed'
+                    : 'border-border bg-muted text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm'
+                    }`}
+                >
+                  <Minus className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={resetZoom}
+                  className="px-6 py-2.5 border border-border bg-muted text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm rounded-xl text-sm font-bold flex items-center gap-2 transition-all duration-150 group"
+                >
+                  <RotateCcw className="w-4 h-4 group-hover:rotate-[-45deg] transition-transform duration-300" />
+                  Reset
+                </button>
+
+                <button
+                  onClick={zoomIn}
+                  disabled={fontSize >= 150}
+                  className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all duration-150 cursor-pointer ${fontSize >= 150
+                    ? 'border-border bg-muted text-muted-foreground/40 opacity-40 cursor-not-allowed'
+                    : 'border-border bg-muted text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm'
+                    }`}
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Slider */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Small</span>
+                  <span>Large</span>
+                </div>
+                <input
+                  type="range"
+                  min="80"
+                  max="150"
+                  step="5"
+                  value={fontSize}
+                  onChange={handleSliderChange}
+                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground/60">
+                  <span>80%</span>
+                  <span>150%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+};
+
+export default ZoomControls;
