@@ -125,7 +125,9 @@ const BlogContent = () => {
     if (!slug) return;
     try {
       await commentService.incrementBlogViews(slug);
-    } catch { }
+    } catch (error) {
+      console.warn('Unable to record blog view:', error);
+    }
   };
 
 

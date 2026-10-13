@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send } from 'lucide-react';
 import { SectionButton } from '../components/ui/SectionButton';
 import ScrollReveal from '../components/ui/ScrollReveal';
+import { CONTACT_EMAIL, ContactSubmissionError, sendContactMessage } from '../lib/contact';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -18,38 +19,31 @@ const Contact = () => {
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const submissionInProgress = useRef(false);
 
-
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (submissionInProgress.current) return;
+
+    submissionInProgress.current = true;
     setLoading(true);
     setSent(false);
     setStatus(null);
 
     try {
-      const response = await fetch(
-        `https://formspree.io/f/${import.meta.env.VITE_FORMSPREE_FORM_ID}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      if (response.ok) {
-        setStatus('Message sent successfully!');
-        setFormData({ name: '', email: '', subject: '', message: '' });
-        setSent(true);
-      } else {
-        setStatus('Something went wrong. Please try again.');
-      }
+      await sendContactMessage(formData);
+      setStatus('Message sent successfully!');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      setSent(true);
     } catch (error) {
-      console.error(error);
-      setStatus('Error sending message. Try again later!');
+      console.error('Contact form submission failed:', error);
+      setStatus(
+        error instanceof ContactSubmissionError
+          ? error.message
+          : 'We could not send your message. Please try again later.'
+      );
     } finally {
+      submissionInProgress.current = false;
       setLoading(false);
     }
   };
@@ -106,6 +100,8 @@ const Contact = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
+                    maxLength={100}
+                    autoComplete="name"
                     className="w-full px-4 py-3 border-input bg-card border rounded-lg text-foreground font-poppins placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 focus:border-foreground/30 transition-colors"
                     placeholder="Your Name"
                   />
@@ -125,6 +121,8 @@ const Contact = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    maxLength={254}
+                    autoComplete="email"
                     className="w-full px-4 py-3 border-input bg-card border rounded-lg text-foreground font-poppins placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 focus:border-foreground/30 transition-colors"
                     placeholder="your.email@example.com"
                   />
@@ -144,6 +142,7 @@ const Contact = () => {
                     value={formData.subject}
                     onChange={handleChange}
                     required
+                    maxLength={200}
                     className="w-full px-4 py-3 font-poppins border-input bg-card border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 focus:border-foreground/30 transition-colors"
                     placeholder="Project Discussion"
                   />
@@ -162,6 +161,7 @@ const Contact = () => {
                     value={formData.message}
                     onChange={handleChange}
                     required
+                    maxLength={5000}
                     rows={5}
                     className="w-full px-4 py-3 font-poppins border-input bg-card border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 focus:border-foreground/30 transition-colors resize-none"
                     placeholder="Tell me about your project..."
@@ -173,7 +173,7 @@ const Contact = () => {
                     type="submit"
                     disabled={loading || sent}
                     className=""
-                    text={loading ? "Sending..." : sent ? "Message Sent" : "Send Message"}
+                    text={loading ? 'Sending...' : sent ? 'Message Sent' : 'Send Message'}
                     icon={loading ? (
                       <svg
                         className="animate-spin h-5 w-5 text-foreground"
@@ -202,10 +202,23 @@ const Contact = () => {
 
               {/* Status Message */}
               {status && (
-                <p className="mt-4 text-center text-sm text-muted-foreground">
+                <p
+                  role={sent ? 'status' : 'alert'}
+                  className={`mt-4 text-center text-sm ${sent ? 'text-muted-foreground' : 'text-destructive'}`}
+                >
                   {status}
                 </p>
               )}
+
+              <p className="mt-5 text-center text-sm text-muted-foreground">
+                Prefer email?{' '}
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="text-foreground underline underline-offset-4 hover:opacity-80"
+                >
+                  {CONTACT_EMAIL}
+                </a>
+              </p>
             </div>
           </ScrollReveal>
         </div>

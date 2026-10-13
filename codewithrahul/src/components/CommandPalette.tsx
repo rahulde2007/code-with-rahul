@@ -190,7 +190,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose: propOn
     {
       id: 'contact',
       title: 'Go to Contact',
-      description: 'Get in touch',
+      description: 'Send a message through the contact form',
       shortcut: 'Shift+T',
       category: 'navigation',
       action: () => {

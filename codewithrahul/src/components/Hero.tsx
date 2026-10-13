@@ -83,7 +83,7 @@ const Hero = () => {
             className={`absolute inset-0 w-full h-full object-cover object-center brightness-[0.8] ${
               avatarTheme === 'logo' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
             }`}
-            fetchPriority="high"
+            {...{ fetchpriority: 'high' }}
             loading="eager"
             decoding="async"
           />
@@ -101,7 +101,7 @@ const Hero = () => {
             className={`absolute inset-0 w-full h-full object-cover object-center brightness-[0.75] ${
               avatarTheme !== 'logo' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
             }`}
-            fetchPriority="high"
+            {...{ fetchpriority: 'high' }}
             loading="eager"
             decoding="async"
           />
@@ -127,7 +127,7 @@ const Hero = () => {
               className={`absolute inset-0 w-full h-full object-cover ${
                 avatarTheme === 'logo' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
               }`}
-              fetchPriority="high"
+              {...{ fetchpriority: 'high' }}
               loading="eager"
             />
             <motion.img
@@ -143,7 +143,7 @@ const Hero = () => {
               className={`absolute inset-0 w-full h-full object-cover ${
                 avatarTheme === 'avatar' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
               }`}
-              fetchPriority="high"
+              {...{ fetchpriority: 'high' }}
               loading="eager"
             />
           </div>

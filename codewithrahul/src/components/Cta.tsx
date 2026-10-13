@@ -3,13 +3,14 @@ import Cal, { getCalApi } from '@calcom/embed-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X } from 'lucide-react';
 import { GoogleMeet } from './svgs/GoogleMeet';
-import { SectionButton } from './ui/SectionButton';
 import ScrollReveal from './ui/ScrollReveal';
+import { SectionButton } from './ui/SectionButton';
 
 import useThemeStore from '../store/useThemeStore';
 
 const Cta = () => {
   const [showCal, setShowCal] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState<'15min' | '30min'>('30min');
   const theme = useThemeStore((s) => s.theme);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ const Cta = () => {
                   
                   <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5 mt-6 w-full">
                     <motion.button
+                      type="button"
                       onClick={() => setShowCal(true)}
                       initial="initial"
                       whileHover="hover"
@@ -48,8 +50,8 @@ const Cta = () => {
                     >
                       <div className="flex items-center shrink-0">
                         <img
-                          src="/assets/avaterlogo.webp"
-                          alt="Avatar"
+                          src="/assets/dp%20avater.png"
+                          alt="Rahul De"
                           className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover border border-border shadow-sm"
                         />
                       </div>
@@ -75,7 +77,12 @@ const Cta = () => {
                       </span>
                     </motion.button>
 
-                    <SectionButton to="/contact" text="Contact Us" icon={null} className="px-3.5 py-1.5 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-hanken font-medium" />
+                    <SectionButton
+                      to="/contact"
+                      text="Contact Us"
+                      icon={null}
+                      className="px-3.5 py-1.5 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-hanken font-medium"
+                    />
                   </div>
                 </div>
               </div>
@@ -103,13 +110,31 @@ const Cta = () => {
               className="fixed inset-0 z-[101] flex items-center justify-center p-4 md:p-8 pointer-events-none"
             >
               <div className="relative w-full max-w-4xl h-[75vh] bg-card/95 backdrop-blur-2xl border border-border rounded-[2rem] shadow-2xl overflow-hidden pointer-events-auto flex flex-col">
-                <div className="flex items-center justify-between px-8 py-6 border-b border-border">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-2xl font-bold font-bricolage text-foreground">
+                <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-8 sm:py-6 border-b border-border">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <h3 className="text-xl sm:text-2xl font-bold font-bricolage text-foreground">
                       Schedule your Free Call
                     </h3>
+                    <div className="flex items-center gap-1 rounded-lg border border-border bg-muted p-1" aria-label="Meeting duration">
+                      {(['15min', '30min'] as const).map((duration) => (
+                        <button
+                          key={duration}
+                          type="button"
+                          onClick={() => setSelectedDuration(duration)}
+                          aria-pressed={selectedDuration === duration}
+                          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                            selectedDuration === duration
+                              ? 'bg-background text-foreground shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {duration === '15min' ? '15 min' : '30 min'}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setShowCal(false)}
                     className="p-2 rounded-full bg-muted border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-300 group cursor-pointer"
                   >
@@ -120,8 +145,9 @@ const Cta = () => {
                 {/* Cal Embed Container */}
                 <div className="flex-1 w-full overflow-hidden p-2">
                   <Cal
-                    namespace="30min"
-                    calLink="dhrubaraj-pati-7zugw9/30min"
+                    key={selectedDuration}
+                    namespace={selectedDuration}
+                    calLink={`rahul-de-2007/${selectedDuration}`}
                     style={{ width: "100%", height: "100%", overflow: "scroll" }}
                     config={{ layout: 'month_view', theme: theme }}
                   />

@@ -3,51 +3,201 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-
-const hasValidCredentials = supabaseUrl &&
+const hasValidCredentials = Boolean(
+  supabaseUrl &&
   supabaseAnonKey &&
   !supabaseUrl.includes('your_supabase') &&
   !supabaseAnonKey.includes('your_supabase') &&
   supabaseUrl.startsWith('https://') &&
-  supabaseUrl.includes('.supabase.co');
+  supabaseUrl.includes('.supabase.co')
+);
 
-console.log('Supabase Debug Info:');
-console.log('URL:', supabaseUrl);
-console.log('Key exists:', !!supabaseAnonKey);
-console.log('URL valid:', supabaseUrl?.startsWith('https://') && supabaseUrl?.includes('.supabase.co'));
-console.log('Has valid credentials:', hasValidCredentials);
+export const isSupabaseConfigured = hasValidCredentials;
 
-let supabase: any = null;
+interface LocalQueryResult {
+  data: any;
+  error: { message: string; code?: string } | null;
+  count?: number | null;
+}
+
+class LocalQuery implements PromiseLike<LocalQueryResult> {
+  private operation: 'select' | 'insert' | 'update' | 'delete' = 'select';
+  private filters: Array<{ column: string; value: unknown }> = [];
+  private ordering: { column: string; ascending: boolean } | null = null;
+  private maxRows: number | null = null;
+  private singleRow = false;
+  private headOnly = false;
+  private payload: Record<string, unknown> | Record<string, unknown>[] | null = null;
+  private resultPromise: Promise<LocalQueryResult> | null = null;
+
+  constructor(private readonly table: string) {}
+
+  select(_columns = '*', options?: { count?: string; head?: boolean }) {
+    this.headOnly = Boolean(options?.head);
+    return this;
+  }
+
+  eq(column: string, value: unknown) {
+    this.filters.push({ column, value });
+    return this;
+  }
+
+  order(column: string, options?: { ascending?: boolean }) {
+    this.ordering = { column, ascending: options?.ascending !== false };
+    return this;
+  }
+
+  limit(count: number) {
+    this.maxRows = count;
+    return this;
+  }
+
+  single() {
+    this.singleRow = true;
+    return this;
+  }
+
+  insert(values: Record<string, unknown> | Record<string, unknown>[]) {
+    this.operation = 'insert';
+    this.payload = values;
+    return this;
+  }
+
+  update(values: Record<string, unknown>) {
+    this.operation = 'update';
+    this.payload = values;
+    return this;
+  }
+
+  delete() {
+    this.operation = 'delete';
+    return this;
+  }
+
+  then<TResult1 = LocalQueryResult, TResult2 = never>(
+    onfulfilled?: ((value: LocalQueryResult) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> {
+    this.resultPromise ??= this.execute();
+    return this.resultPromise.then(onfulfilled, onrejected);
+  }
+
+  private readRows(): Record<string, unknown>[] {
+    const storedRows = localStorage.getItem(`supabase-local:${this.table}`);
+    return storedRows ? JSON.parse(storedRows) as Record<string, unknown>[] : [];
+  }
+
+  private writeRows(rows: Record<string, unknown>[]) {
+    localStorage.setItem(`supabase-local:${this.table}`, JSON.stringify(rows));
+  }
+
+  private matches(row: Record<string, unknown>) {
+    return this.filters.every(({ column, value }) => row[column] === value);
+  }
+
+  private async execute(): Promise<LocalQueryResult> {
+    try {
+      let rows = this.readRows();
+
+      if (this.operation === 'insert') {
+        const newRows: Record<string, unknown>[] = (Array.isArray(this.payload) ? this.payload : [this.payload])
+          .filter((row): row is Record<string, unknown> => row !== null)
+          .map((row): Record<string, unknown> => ({
+            id: row.id ?? (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`),
+            ...row,
+          }));
+        const hasDuplicate = newRows.some((newRow) =>
+          rows.some((row) =>
+            (newRow.blog_slug !== undefined && row.blog_slug === newRow.blog_slug &&
+              newRow.user_id !== undefined && row.user_id === newRow.user_id) ||
+            (newRow.photo_id !== undefined && row.photo_id === newRow.photo_id &&
+              newRow.user_id !== undefined && row.user_id === newRow.user_id)
+          )
+        );
+        if (hasDuplicate) {
+          return { data: null, error: { message: 'Duplicate reaction', code: '23505' } };
+        }
+        rows = [...rows, ...newRows];
+        this.writeRows(rows);
+        const inserted = newRows.filter((row) => this.matches(row));
+        return { data: this.singleRow ? inserted[0] ?? null : inserted, error: null };
+      }
+
+      if (this.operation === 'update') {
+        const updatedRows = rows.map((row) =>
+          this.matches(row) ? { ...row, ...this.payload } : row
+        );
+        this.writeRows(updatedRows);
+        const updated = updatedRows.filter((row) => this.matches(row));
+        return { data: this.singleRow ? updated[0] ?? null : updated, error: null };
+      }
+
+      if (this.operation === 'delete') {
+        const deleted = rows.filter((row) => this.matches(row));
+        this.writeRows(rows.filter((row) => !this.matches(row)));
+        return { data: deleted, error: null };
+      }
+
+      rows = rows.filter((row) => this.matches(row));
+      const count = rows.length;
+      if (this.ordering) {
+        const { column, ascending } = this.ordering;
+        rows = [...rows].sort((left, right) => {
+          const a = String(left[column] ?? '');
+          const b = String(right[column] ?? '');
+          return (a < b ? -1 : a > b ? 1 : 0) * (ascending ? 1 : -1);
+        });
+      }
+      if (this.maxRows !== null) rows = rows.slice(0, this.maxRows);
+      if (this.headOnly) return { data: null, error: null, count };
+      if (this.singleRow) {
+        return rows.length === 1
+          ? { data: rows[0], error: null, count }
+          : { data: null, error: { message: 'No rows found', code: 'PGRST116' }, count };
+      }
+      return { data: rows, error: null, count };
+    } catch (error) {
+      return {
+        data: null,
+        error: { message: error instanceof Error ? error.message : 'Local storage query failed' },
+      };
+    }
+  }
+}
+
+const createLocalSupabase = () => {
+  const localChannel = {
+    on() {
+      return this;
+    },
+    subscribe() {
+      return this;
+    },
+  };
+
+  return {
+    from: (table: string) => new LocalQuery(table),
+    channel: () => localChannel,
+    removeChannel: () => Promise.resolve('ok'),
+  };
+};
+
+let supabase: any;
 
 if (hasValidCredentials) {
-  console.log('Using Supabase database mode');
+  console.info('Using Supabase database mode');
   supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 
   supabase.from('comments').select('count').limit(1).then(({ error }: { error: any }) => {
     if (error) {
       console.error('Supabase connection test failed:', error);
     } else {
-      console.log('Supabase connection successful');
+      console.info('Supabase connection successful');
     }
   });
 } else {
-  console.warn('Supabase not properly configured. Using localStorage mode. Please set valid VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local');
-
-  supabase = {
-    from: () => ({
-      select: () => ({ eq: () => ({ order: () => ({ ascending: () => Promise.resolve({ data: [], error: null }) }) }) }),
-      insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-      update: () => ({ eq: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }) }),
-      delete: () => ({ eq: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }) })
-    }),
-    channel: () => ({
-      on: () => ({
-        subscribe: () => { }
-      })
-    }),
-    removeChannel: () => { }
-  };
+  console.warn('Supabase credentials are missing or invalid. Using localStorage mode.');
+  supabase = createLocalSupabase();
 }
 
 export { supabase };

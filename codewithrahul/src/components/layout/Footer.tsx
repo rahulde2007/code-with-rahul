@@ -25,7 +25,6 @@ const navigateLinks = [
   { name: 'Gallery', href: '/photos' },
   { name: 'Achievements', href: '/certificates' },
   { name: 'Contact', href: '/contact' },
-  { name: 'RSS FEED', href: '/feed.xml' }
 ];
 
 const socialLinks = [
@@ -44,15 +43,6 @@ const socialLinks = [
   {
     href: 'https://www.instagram.com/rahulde_18/',
     icon: <InstagramIcon size="18" className="stroke-muted-foreground group-hover:stroke-foreground transition-all duration-300" />
-  },
-  {
-    href: 'https://mail.google.com/mail/u/0/?view=cm&fs=1&to=rahulde937@gmail.com&su=Portfolio%20Inquiry',
-    icon: (
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="stroke-muted-foreground group-hover:stroke-foreground transition-colors duration-300">
-        <rect width="20" height="16" x="2" y="4" rx="2" />
-        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-      </svg>
-    )
   },
 ];
 
@@ -100,29 +90,16 @@ const Footer = () => {
               Navigate
             </span>
             <div className="flex flex-wrap gap-x-6 gap-y-3 max-w-md font-outfit text-sm">
-              {navigateLinks.map((link) =>
-                link.href.endsWith('.xml') ? (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={playClickSound}
-                    className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  >
-                    {link.name}
-                  </a>
-                ) : (
-                  <Link
-                    key={link.name}
-                    to={link.href}
-                    onClick={playClickSound}
-                    className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  >
-                    {link.name}
-                  </Link>
-                )
-              )}
+              {navigateLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  onClick={playClickSound}
+                  className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                >
+                  {link.name}
+                </Link>
+              ))}
             </div>
 
             {/* Spotify Widget */}

@@ -89,6 +89,14 @@ npm run preview
 yarn preview
 ```
 
+### Contact form delivery
+
+The Contact form sends messages through Formspree. Create a Formspree form, set
+its verified recipient to `rahulde937@gmail.com`, and copy the form ID into
+`VITE_FORMSPREE_FORM_ID` in a local `.env.local` file. Add the same variable to
+your production hosting environment and redeploy. The form reports success only
+after Formspree accepts the submission; without a configured form ID, it shows
+an explicit setup error instead.
 
 ## Contributing
 
