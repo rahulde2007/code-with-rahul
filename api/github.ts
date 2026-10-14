@@ -1,7 +1,7 @@
 import {
   getContributionCalendar,
   isSupportedContributionYear,
-} from '../src/lib/githubContributions';
+} from '../src/lib/githubContributions.js';
 
 interface ApiRequest {
   method?: string;

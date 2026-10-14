@@ -1,4 +1,4 @@
-import { GITHUB_USERNAME } from '../constants/github';
+import { GITHUB_USERNAME } from '../constants/github.js';
 
 const LAST_SELECTABLE_YEAR = 2029;
 
