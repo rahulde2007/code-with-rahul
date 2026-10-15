@@ -83,7 +83,7 @@ const GitHubContributions = () => {
   const [selectedYear, setSelectedYear] = useState<number | 'Default'>('Default');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [refreshCount, setRefreshCount] = useState(0);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const isGridInView = useInView(gridRef, { once: true, margin: '-50px' });
@@ -97,8 +97,10 @@ const GitHubContributions = () => {
       setTooltip(null);
 
       try {
-        const response = await fetch(`/api/github?year=${selectedYear}`, {
+        const refreshParam = refreshCount > 0 ? '&refresh=true' : '';
+        const response = await fetch(`/api/github?year=${selectedYear}${refreshParam}`, {
           signal: controller.signal,
+          cache: 'no-store',
         });
         if (!response.ok) {
           throw new Error(`GitHub contribution request failed (${response.status})`);
@@ -120,7 +122,27 @@ const GitHubContributions = () => {
 
     void fetchCalendar();
     return () => controller.abort();
-  }, [selectedYear, retryCount]);
+  }, [selectedYear, refreshCount]);
+
+  useEffect(() => {
+    let lastAutomaticRefresh = Date.now();
+    const refreshIfVisible = () => {
+      if (document.visibilityState !== 'visible') return;
+      const now = Date.now();
+      if (now - lastAutomaticRefresh < 60_000) return;
+      lastAutomaticRefresh = now;
+      setRefreshCount((count) => count + 1);
+    };
+    const interval = window.setInterval(refreshIfVisible, 5 * 60_000);
+    window.addEventListener('focus', refreshIfVisible);
+    document.addEventListener('visibilitychange', refreshIfVisible);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refreshIfVisible);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+    };
+  }, []);
 
   const weeks = useMemo(
     () => (calendar ? createWeeks(calendar.days) : []),
@@ -203,15 +225,10 @@ const GitHubContributions = () => {
             <div className="w-full border border-border bg-card rounded-lg p-4 sm:py-4 sm:px-6 shadow-lg">
               <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-sm font-hanken text-muted-foreground">
+                  Total contributions in{' '}
                   {selectedYear === 'Default'
-                    ? 'Total contributions'
-                    : `Total contributions in ${selectedYear}`}
-                  {calendar && (
-                    <>
-                      {' '}from {formatDate(calendar.from, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
-                      {' '}– {formatDate(calendar.to, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
-                    </>
-                  )}
+                    ? calendar?.to.slice(0, 4) ?? new Date().getFullYear()
+                    : selectedYear}
                   :{' '}
                   <span
                     className={`text-[#00DC82] font-medium transition-all duration-300 ${
@@ -268,7 +285,7 @@ const GitHubContributions = () => {
                   </a>
                   <button
                     type="button"
-                    onClick={() => setRetryCount((count) => count + 1)}
+                    onClick={() => setRefreshCount((count) => count + 1)}
                     className="ml-2 mt-3 rounded-full border border-border px-4 py-1.5 font-semibold text-foreground transition-colors hover:bg-accent"
                   >
                     Try again

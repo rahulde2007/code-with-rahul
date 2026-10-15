@@ -13,7 +13,9 @@ const githubContributionsApi = (): Plugin => ({
     server.middlewares.use('/api/github', async (req, res) => {
       const url = new URL(req.url ?? '/', 'http://localhost');
       const year = url.searchParams.get('year');
+      const forceRefresh = url.searchParams.get('refresh') === 'true';
       res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-store');
 
       if (req.method !== 'GET') {
         res.statusCode = 405;
@@ -28,7 +30,12 @@ const githubContributionsApi = (): Plugin => ({
 
       try {
         const calendar = await getContributionCalendar(year);
-        res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+        res.setHeader(
+          'Cache-Control',
+          forceRefresh
+            ? 'no-store'
+            : 'public, max-age=0, s-maxage=300, stale-while-revalidate=300',
+        );
         res.end(JSON.stringify(calendar));
       } catch (error) {
         console.error('GitHub contribution calendar request failed:', error);
