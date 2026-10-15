@@ -2,6 +2,8 @@
 
 interface ImportMetaEnv {
   readonly VITE_FORMSPREE_FORM_ID: string
+  readonly VITE_GISCUS_REPO_ID: string
+  readonly VITE_GISCUS_CATEGORY_ID: string
 
   // more env variables...
 }

@@ -272,7 +272,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose: propOn
       description: 'Open GitHub repository',
       shortcut: 'Shift+V',
       category: 'actions',
-      action: () => window.open('https://github.com/codewithdhruba01/codewithdhruba.app', '_blank')
+      action: () => window.open('https://github.com/rahulde2007/code-with-rahul', '_blank', 'noopener,noreferrer')
     },
     {
       id: 'github-profile',
@@ -289,30 +289,6 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose: propOn
       shortcut: 'Shift+L',
       category: 'actions',
       action: () => window.open('https://www.linkedin.com/in/rahul-de-r6294520571?utm_source=share_via&utm_content=profile&utm_medium=member_android', '_blank', 'noopener,noreferrer')
-    },
-    {
-      id: 'daily-dev',
-      title: 'Open Daily.dev',
-      description: 'Follow me on Daily.dev',
-      shortcut: 'Shift+D',
-      category: 'actions',
-      action: () => window.open('https://app.daily.dev/codewithdhruba', '_blank')
-    },
-    {
-      id: 'codepen',
-      title: 'Open CodePen',
-      description: 'View my CodePen creations',
-      shortcut: 'Shift+N',
-      category: 'actions',
-      action: () => window.open('https://codepen.io/Dhrubaraj-Pati-the-looper', '_blank')
-    },
-    {
-      id: 'leetcode',
-      title: 'Open Leetcode',
-      description: 'View my Leetcode profile',
-      shortcut: 'Shift+I',
-      category: 'actions',
-      action: () => window.open('https://leetcode.com/u/codewithdhruba/', '_blank')
     }
   ];
 

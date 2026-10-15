@@ -10,6 +10,8 @@ interface GiscusCommentsProps {
 const GiscusComments = ({ slug }: GiscusCommentsProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const theme = useThemeStore((state) => state.theme);
+  const repoId = import.meta.env.VITE_GISCUS_REPO_ID;
+  const categoryId = import.meta.env.VITE_GISCUS_CATEGORY_ID;
 
   useEffect(() => {
     console.log('🗨️ GiscusComments component loaded for slug:', slug);
@@ -32,23 +34,29 @@ const GiscusComments = ({ slug }: GiscusCommentsProps) => {
       <h4 className="text-xl md:text-2xl font-semibold text-foreground mb-6 font-hanken">
         Comments
       </h4>
-      <div className="giscus-wrapper">
-        <Giscus
-          key={`giscus-${slug}-${giscusTheme}`}
-          id="comments"
-          repo="codewithdhruba01/codewithdhruba.app"
-          repoId="R_kgDOO78xow"
-          category="Blog Comments"
-          categoryId="DIC_kwDOO78xo84C0Eyx"
-          mapping="specific"
-          term={`blog-{${slug}}`}
-          emitMetadata="0"
-          inputPosition="bottom"
-          theme={giscusTheme}
-          lang="en"
-          loading="eager"
-        />
-      </div>
+      {repoId && categoryId ? (
+        <div className="giscus-wrapper">
+          <Giscus
+            key={`giscus-${slug}-${giscusTheme}`}
+            id="comments"
+            repo="rahulde2007/code-with-rahul"
+            repoId={repoId}
+            category="Blog Comments"
+            categoryId={categoryId}
+            mapping="specific"
+            term={`blog-{${slug}}`}
+            emitMetadata="0"
+            inputPosition="bottom"
+            theme={giscusTheme}
+            lang="en"
+            loading="eager"
+          />
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Comments are not configured for this repository.
+        </p>
+      )}
     </div>
   );
 };

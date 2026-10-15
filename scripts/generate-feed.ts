@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { blogPostsData } from '../src/data/blogs';
 
-const SITE_URL = 'https://codewithdhruba.in';
+const SITE_URL = 'https://code-with-rahul.vercel.app';
 const FEED_PATH = path.join(process.cwd(), 'public', 'feed.xml');
 
 // Helper to escape XML special characters

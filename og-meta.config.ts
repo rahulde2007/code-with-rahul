@@ -3,7 +3,7 @@
  * Used by: server-side (api/og for crawlers) + client-side (SEO component)
  */
 
-const SITE_URL = 'https://codewithdhruba.in';
+const SITE_URL = 'https://code-with-rahul.vercel.app';
 
 export type PageMeta = {
   title: string;
@@ -16,13 +16,13 @@ const staticPages: Record<string, PageMeta> = {
     title: 'Rahul De - Full Stack Web Developer',
     description:
       "I'm a Full Stack web developer and open source contributor. I love building products to solve real-world problems. Explore my work.",
-    image: '/meta/home.jpeg',
+    image: '/preview.png',
   },
   '/about': {
     title: 'About - My Story & Life',
     description:
       'Get to know me a Full Stack Developer and Open Source Contributor. Explore my background, technical journey, development philosophy, and the tools I use to build for the web.',
-    image: '/meta/about.jpeg',
+    image: '/meta/photo.png',
   },
   '/projects': {
     title: 'Projects - My Work & Projects',
@@ -43,7 +43,7 @@ const staticPages: Record<string, PageMeta> = {
   '/resume': {
     title: 'Resume - Journey of a Developer',
     description: 'View Rahul De\'s professional resume and CV. Technical skills, experience, and qualifications.',
-    image: '/meta/resume.png',
+    image: '/meta/experience.png',
   },
   '/experience': {
     title: 'Work Experience - Professional Journey',
@@ -73,7 +73,7 @@ const staticPages: Record<string, PageMeta> = {
   '/bucket-list': {
     title: 'Bucket List - Travel & Tour',
     description: 'Goals and bucket list.',
-    image: '/meta/bucketlist.png',
+    image: '/meta/photo.png',
   },
 };
 
