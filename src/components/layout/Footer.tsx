@@ -73,7 +73,7 @@ const Footer = () => {
 
             {/* Spotify Widget */}
             <a
-              href="https://open.spotify.com/collection/tracks"
+              href="https://open.spotify.com/playlist/6jiB4RHp3nz0Rd4RXGj2pl?si=rP8oX_oAR4eteetwBUP0qA"
               target="_blank"
               rel="noopener noreferrer"
               onClick={playClickSound}
