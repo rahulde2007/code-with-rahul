@@ -10,8 +10,10 @@ interface GiscusCommentsProps {
 const GiscusComments = ({ slug }: GiscusCommentsProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const theme = useThemeStore((state) => state.theme);
-  const repoId = import.meta.env.VITE_GISCUS_REPO_ID;
-  const categoryId = import.meta.env.VITE_GISCUS_CATEGORY_ID;
+  const repo = (import.meta.env.VITE_GISCUS_REPO || 'rahulde2007/code-with-rahul') as `${string}/${string}`;
+  const repoId = import.meta.env.VITE_GISCUS_REPO_ID || 'R_kgDOVG7QHg';
+  const category = import.meta.env.VITE_GISCUS_CATEGORY || 'Blog Comments';
+  const categoryId = import.meta.env.VITE_GISCUS_CATEGORY_ID || 'DIC_kwDOVG7QHs4DJT7E';
 
   useEffect(() => {
     console.log('🗨️ GiscusComments component loaded for slug:', slug);
@@ -23,7 +25,7 @@ const GiscusComments = ({ slug }: GiscusCommentsProps) => {
     return () => clearTimeout(timer);
   }, [slug]);
 
-  if (!isLoaded) {
+  if (!isLoaded || !slug) {
     return null;
   }
 
@@ -39,12 +41,13 @@ const GiscusComments = ({ slug }: GiscusCommentsProps) => {
           <Giscus
             key={`giscus-${slug}-${giscusTheme}`}
             id="comments"
-            repo="rahulde2007/code-with-rahul"
+            repo={repo}
             repoId={repoId}
-            category="Blog Comments"
+            category={category}
             categoryId={categoryId}
             mapping="specific"
             term={`blog-{${slug}}`}
+            reactionsEnabled="1"
             emitMetadata="0"
             inputPosition="bottom"
             theme={giscusTheme}

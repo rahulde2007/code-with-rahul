@@ -43,3 +43,7 @@
 # Editor and local tooling files
 **/.idea/
 **/.vscode-test/
+
+# Reference
+**/reference/
+/referance/
