@@ -37,8 +37,7 @@ const Subscribe: React.FC<SubscribeProps> = ({
       if (supabase && typeof supabase.from === 'function') {
         const { error } = await supabase
           .from('subscribers')
-          .insert({ email })
-          .select();
+          .insert({ email });
 
         if (error) {
           // If the subscribers table doesn't exist, we fall back to localStorage

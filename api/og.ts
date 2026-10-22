@@ -12,12 +12,20 @@ export default async function handler(req: Request): Promise<Response> {
 
     const baseUrl = `${origin}/index.html`;
     const htmlResponse = await fetch(baseUrl);
+    if (!htmlResponse.ok) {
+      throw new Error(`Failed to fetch base index.html: ${htmlResponse.status}`);
+    }
     let html = await htmlResponse.text();
+
+    const cacheHeaders = {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
+    };
 
     if (!meta) {
       return new Response(html, {
         status: 200,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        headers: cacheHeaders,
       });
     }
 
@@ -44,10 +52,15 @@ export default async function handler(req: Request): Promise<Response> {
 
     return new Response(html, {
       status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      headers: cacheHeaders,
     });
   } catch (err) {
     console.error('OG API error:', err);
-    return new Response('Internal Server Error', { status: 500 });
+    return new Response('Internal Server Error', {
+      status: 500,
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    });
   }
 }

@@ -1,11 +1,14 @@
+import type React from 'react';
 import { ChevronRight } from 'lucide-react';
-import DOMPurify from 'dompurify';
 import { cn } from '../../lib/utils';
 import { ExperienceInterface } from '../../constants/experience';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
 
-const parseDescription = (text: string): string => {
-    return text.replace(/\*(.*?)\*/g, '<b>$1</b>');
+const renderFormattedDescription = (text: string): React.ReactNode => {
+    const parts = text.split(/\*(.*?)\*/g);
+    return parts.map((part, index) =>
+        index % 2 === 1 ? <b key={index}>{part}</b> : part
+    );
 };
 
 interface ExperienceCardProps {
@@ -102,12 +105,9 @@ export function ExperienceCard({ experience, isOpen, onClick, alwaysOpen = false
                                 {experience.description.map((description: string, descIndex: number) => (
                                     <li key={descIndex} className="flex gap-2 items-start">
                                         <span className="text-muted-foreground shrink-0 select-none mt-1.5 text-xs">•</span>
-                                        <span
-                                            className="text-muted-foreground font-poppins text-sm sm:text-sm leading-relaxed"
-                                            dangerouslySetInnerHTML={{
-                                                __html: DOMPurify.sanitize(parseDescription(description)),
-                                             }}
-                                        />
+                                        <span className="text-muted-foreground font-poppins text-sm sm:text-sm leading-relaxed">
+                                            {renderFormattedDescription(description)}
+                                        </span>
                                     </li>
                                 ))}
                             </ul>

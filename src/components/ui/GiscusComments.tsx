@@ -16,8 +16,6 @@ const GiscusComments = ({ slug }: GiscusCommentsProps) => {
   const categoryId = import.meta.env.VITE_GISCUS_CATEGORY_ID || 'DIC_kwDOVG7QHs4DJT7E';
 
   useEffect(() => {
-    console.log('🗨️ GiscusComments component loaded for slug:', slug);
-
     const timer = setTimeout(() => {
       setIsLoaded(true);
     }, 100);

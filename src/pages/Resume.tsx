@@ -3,7 +3,10 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import { Download } from 'lucide-react';
 import ScrollReveal from '../components/ui/ScrollReveal';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString();
 
 const Resume = () => {
   const [showFallback, setShowFallback] = useState(false);

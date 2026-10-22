@@ -5,6 +5,7 @@ export interface ContactMessage {
   email: string;
   subject: string;
   message: string;
+  _gotcha?: string;
 }
 
 export class ContactSubmissionError extends Error {
@@ -18,6 +19,11 @@ export const sendContactMessage = async (
   message: ContactMessage,
   configuredFormId = import.meta.env.VITE_FORMSPREE_FORM_ID
 ): Promise<void> => {
+  // If honeypot is populated, silently discard the submission without notifying the bot
+  if (message._gotcha && message._gotcha.trim().length > 0) {
+    return;
+  }
+
   const formId = configuredFormId?.trim();
   if (!formId || formId === 'your_formspree_form_id_here') {
     throw new ContactSubmissionError(

@@ -10,6 +10,7 @@ const Contact = () => {
     email: '',
     subject: '',
     message: '',
+    _gotcha: '',
   });
 
   useEffect(() => {
@@ -33,7 +34,7 @@ const Contact = () => {
     try {
       await sendContactMessage(formData);
       setStatus('Message sent successfully!');
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({ name: '', email: '', subject: '', message: '', _gotcha: '' });
       setSent(true);
     } catch (error) {
       console.error('Contact form submission failed:', error);
@@ -86,6 +87,20 @@ const Contact = () => {
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Honeypot field for automated spam bots — hidden from human users */}
+                <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
+                  <label htmlFor="contact_hp_gotcha">Leave this field empty</label>
+                  <input
+                    type="text"
+                    id="contact_hp_gotcha"
+                    name="_gotcha"
+                    value={formData._gotcha}
+                    onChange={handleChange}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
+
                 <div>
                   <label
                     htmlFor="name"
