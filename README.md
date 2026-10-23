@@ -3,7 +3,7 @@
 
 # 💻 Code With Rahul
 
-### Personal Portfolio & Blog
+### Personal Portfolio
 
 <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=22&pause=1000&color=36BCF7&center=true&vCenter=true&width=600&lines=Welcome+to+my+Portfolio!;Exploring+Web+Development;Building+Projects+and+Learning+Every+Day" alt="Animated typing introduction" />
 
