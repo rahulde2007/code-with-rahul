@@ -189,6 +189,7 @@ const createLocalSupabase = () => {
     from: (table: string) => new LocalQuery(table),
     channel: () => localChannel,
     removeChannel: () => Promise.resolve('ok'),
+    rpc: () => Promise.resolve({ data: null, error: null }),
   };
 };
 
@@ -551,4 +552,59 @@ export const commentService = {
     }
   },
 
+};
+
+export const siteStatsService = {
+  async recordVisit(): Promise<number | null> {
+    if (!isSupabaseConfigured) return null;
+
+    try {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('visitor_counted') === '1') {
+        const { data, error } = await supabase
+          .from('site_stats')
+          .select('stat_value')
+          .eq('stat_key', 'visitors')
+          .single();
+
+        if (error) throw error;
+        const count = typeof data?.stat_value === 'number'
+          ? data.stat_value
+          : parseInt(data?.stat_value, 10);
+        return isNaN(count) ? null : count;
+      }
+
+      const { data: rpcData, error: rpcError } = await supabase.rpc('increment_visitors');
+      if (rpcError) throw rpcError;
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('visitor_counted', '1');
+      }
+
+      if (typeof rpcData === 'number') {
+        return rpcData;
+      }
+      if (rpcData && typeof rpcData.stat_value === 'number') {
+        return rpcData.stat_value;
+      }
+      if (typeof rpcData === 'string' && !isNaN(Number(rpcData))) {
+        return Number(rpcData);
+      }
+
+      // If the RPC returned void/null, fetch the current stat_value
+      const { data, error } = await supabase
+        .from('site_stats')
+        .select('stat_value')
+        .eq('stat_key', 'visitors')
+        .single();
+
+      if (error) throw error;
+      const count = typeof data?.stat_value === 'number'
+        ? data.stat_value
+        : parseInt(data?.stat_value, 10);
+      return isNaN(count) ? null : count;
+    } catch (error) {
+      console.warn('Error recording site visit:', error);
+      return null;
+    }
+  },
 };
