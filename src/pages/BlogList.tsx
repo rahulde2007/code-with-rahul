@@ -60,24 +60,11 @@ const BlogList = () => {
   const loadBlogViews = async () => {
     try {
       setLoadingViews(true);
-      const viewsData: Record<string, number> = {};
-
-      // Load views for all blog posts
-      await Promise.all(
-        blogPosts.map(async (post) => {
-          try {
-            const views = await commentService.getBlogViews(post.slug);
-            viewsData[post.slug] = views;
-          } catch (error) {
-            console.warn(`Error loading views for ${post.slug}:`, error);
-            viewsData[post.slug] = 0;
-          }
-        })
-      );
-
+      const viewsData = await commentService.getAllBlogViews();
       setBlogViews(viewsData);
     } catch (error) {
       console.error('Error loading blog views:', error);
+      setBlogViews({});
     } finally {
       setLoadingViews(false);
     }

@@ -8,8 +8,7 @@ const hasValidCredentials = Boolean(
   supabaseAnonKey &&
   !supabaseUrl.includes('your_supabase') &&
   !supabaseAnonKey.includes('your_supabase') &&
-  supabaseUrl.startsWith('https://') &&
-  supabaseUrl.includes('.supabase.co')
+  supabaseUrl.startsWith('https://')
 );
 
 export const isSupabaseConfigured = hasValidCredentials;
@@ -57,7 +56,18 @@ class LocalQuery implements PromiseLike<LocalQueryResult> {
     return this;
   }
 
+  maybeSingle() {
+    this.singleRow = true;
+    return this;
+  }
+
   insert(values: Record<string, unknown> | Record<string, unknown>[]) {
+    this.operation = 'insert';
+    this.payload = values;
+    return this;
+  }
+
+  upsert(values: Record<string, unknown> | Record<string, unknown>[], _options?: unknown) {
     this.operation = 'insert';
     this.payload = values;
     return this;
@@ -437,65 +447,107 @@ export const commentService = {
     if (error) throw error;
   },
 
-  // Get blog post view count
+  // Fetch all blog views in a single query
+  async getAllBlogViews(): Promise<Record<string, number>> {
+    if (!isSupabaseConfigured) return {};
+    try {
+      const { data, error } = await supabase
+        .from('blog_views')
+        .select('blog_slug, view_count');
+
+      if (error) throw error;
+
+      const viewsMap: Record<string, number> = {};
+      if (Array.isArray(data)) {
+        for (const row of data) {
+          if (row?.blog_slug) {
+            viewsMap[row.blog_slug] = typeof row.view_count === 'number'
+              ? row.view_count
+              : Number(row.view_count) || 0;
+          }
+        }
+      }
+      return viewsMap;
+    } catch (error) {
+      console.warn('Error fetching all blog views:', error);
+      return {};
+    }
+  },
+
+  // Get single blog post view count
   async getBlogViews(blogSlug: string): Promise<number> {
+    if (!isSupabaseConfigured) return 0;
     try {
       const { data, error } = await supabase
         .from('blog_views')
         .select('view_count')
         .eq('blog_slug', blogSlug)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
-      return data?.view_count || 0;
+      return typeof data?.view_count === 'number'
+        ? data.view_count
+        : Number(data?.view_count) || 0;
     } catch (error) {
       console.warn('Error fetching blog views:', error);
       return 0;
     }
   },
 
-  // Increment blog post view count
+  // Increment blog post view count (upsert-style update)
   async incrementBlogViews(blogSlug: string): Promise<void> {
+    if (!isSupabaseConfigured) return;
     try {
-      // First, try to get existing view count
+      // First, try to fetch existing view count
       const { data: existingData, error: fetchError } = await supabase
         .from('blog_views')
         .select('view_count')
         .eq('blog_slug', blogSlug)
-        .single();
+        .maybeSingle();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
         throw fetchError;
       }
 
       if (existingData) {
-        // Update existing record
-        const { error } = await supabase
+        // Row exists: increment view_count by one
+        const currentCount = typeof existingData.view_count === 'number'
+          ? existingData.view_count
+          : Number(existingData.view_count) || 0;
+
+        const { error: updateError } = await supabase
           .from('blog_views')
           .update({
-            view_count: existingData.view_count + 1,
-            updated_at: new Date().toISOString()
+            view_count: currentCount + 1,
           })
           .eq('blog_slug', blogSlug);
 
-        if (error) throw error;
+        if (updateError) throw updateError;
       } else {
-        // Create new record
-        const { error } = await supabase
+        // Row missing: upsert/insert row with view_count = 1
+        const { error: upsertError } = await supabase
           .from('blog_views')
-          .insert({
-            blog_slug: blogSlug,
-            view_count: 1
-          });
+          .upsert(
+            {
+              blog_slug: blogSlug,
+              view_count: 1,
+            },
+            { onConflict: 'blog_slug' }
+          );
 
-        if (error) throw error;
+        if (upsertError) {
+          // Fallback to standard insert if onConflict is not configured on the table
+          await supabase.from('blog_views').insert({
+            blog_slug: blogSlug,
+            view_count: 1,
+          });
+        }
       }
     } catch (error) {
       console.warn('Error incrementing blog views:', error);
-      // Don't throw error to avoid breaking the page load
     }
   },
 

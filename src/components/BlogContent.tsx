@@ -112,11 +112,18 @@ const BlogContent = () => {
 
 
 
+  const hasIncrementedView = useRef<string | null>(null);
+
   useEffect(() => {
     // Reset scroll to top instantly
     window.scrollTo(0, 0);
 
-    if (slug && blogPostsData[slug as keyof typeof blogPostsData]) {
+    if (
+      slug &&
+      blogPostsData[slug as keyof typeof blogPostsData] &&
+      hasIncrementedView.current !== slug
+    ) {
+      hasIncrementedView.current = slug;
       incrementBlogViews();
     }
   }, [slug]);
