@@ -84,9 +84,8 @@ const Hero = () => {
               scale: avatarTheme === 'logo' ? 1 : 1.04,
             }}
             transition={{ duration: 0.75, ease: 'easeInOut' }}
-            className={`absolute inset-0 w-full h-full object-cover object-center brightness-[0.8] ${
-              avatarTheme === 'logo' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
-            }`}
+            className={`absolute inset-0 w-full h-full object-cover object-center brightness-[0.8] ${avatarTheme === 'logo' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
+              }`}
             {...{ fetchpriority: 'high' }}
             loading="eager"
             decoding="async"
@@ -102,9 +101,8 @@ const Hero = () => {
               scale: avatarTheme !== 'logo' ? 1 : 1.04,
             }}
             transition={{ duration: 0.75, ease: 'easeInOut' }}
-            className={`absolute inset-0 w-full h-full object-cover object-center brightness-[0.75] ${
-              avatarTheme !== 'logo' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
-            }`}
+            className={`absolute inset-0 w-full h-full object-cover object-center brightness-[0.75] ${avatarTheme !== 'logo' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
+              }`}
             {...{ fetchpriority: 'high' }}
             loading="eager"
             decoding="async"
@@ -128,9 +126,8 @@ const Hero = () => {
                 scale: avatarTheme === 'logo' ? 1 : 1.05,
               }}
               transition={{ duration: 0.5, ease: 'easeInOut' }}
-              className={`absolute inset-0 w-full h-full object-cover ${
-                avatarTheme === 'logo' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
-              }`}
+              className={`absolute inset-0 w-full h-full object-cover ${avatarTheme === 'logo' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
+                }`}
               {...{ fetchpriority: 'high' }}
               loading="eager"
             />
@@ -144,9 +141,8 @@ const Hero = () => {
                 scale: avatarTheme === 'avatar' ? 1 : 1.05,
               }}
               transition={{ duration: 0.5, ease: 'easeInOut' }}
-              className={`absolute inset-0 w-full h-full object-cover ${
-                avatarTheme === 'avatar' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
-              }`}
+              className={`absolute inset-0 w-full h-full object-cover ${avatarTheme === 'avatar' ? 'pointer-events-auto z-10' : 'pointer-events-none z-0'
+                }`}
               {...{ fetchpriority: 'high' }}
               loading="eager"
             />
@@ -232,7 +228,7 @@ const Hero = () => {
             <Tooltip>
               <TooltipTrigger>
                 <a
-                  href="https://www.linkedin.com/in/rahul-de-r6294520571?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+                  href="https://www.linkedin.com/in/rahul-de-dev2026?utm_source=share_via&utm_content=profile&utm_medium=member_android"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2.5 rounded-full border border-border bg-card hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200 flex items-center justify-center cursor-pointer shadow-sm"

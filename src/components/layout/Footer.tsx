@@ -25,7 +25,7 @@ const socialLinks = [
     icon: <XIcon size="18" className="fill-muted-foreground group-hover:fill-foreground transition-colors duration-300" />
   },
   {
-    href: 'https://www.linkedin.com/in/rahul-de-r6294520571?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+    href: 'https://www.linkedin.com/in/rahul-de-dev2026?utm_source=share_via&utm_content=profile&utm_medium=member_android',
     icon: <LinkedinIcon size="21" className="stroke-muted-foreground group-hover:stroke-foreground transition-colors duration-300" />
   },
   {
