@@ -143,10 +143,6 @@ export default function Gears() {
             <ul className="space-y-4">
               {[
                 {
-                  name: 'ColorPick Eyedropper',
-                  url: 'https://chromewebstore.google.com/detail/ohcpnigalekghcmgcdcenkpelffpdolg?utm_source=item-share-cb',
-                },
-                {
                   name: 'React Developer Tools',
                   url: 'https://chromewebstore.google.com/detail/fmkadmapgofadopljbjfkapdkoienihi?utm_source=item-share-cb',
                 },
