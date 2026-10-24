@@ -14,7 +14,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 import ScrollReveal from './ui/ScrollReveal';
 
 const technologyBadgeClassName =
-  'inline-flex items-center gap-1.5 rounded-md border border-border bg-muted px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+  'inline-flex items-center gap-1.5 rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground align-middle whitespace-nowrap transition-colors hover:border-foreground/30 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 const Hero = () => {
   const [githubFollowers, setGithubFollowers] = useState<number | null>(null);
@@ -269,9 +269,7 @@ const Hero = () => {
             I build from scratch.
           </h3>
           <p className="text-muted-foreground leading-relaxed text-base font-hanken font-regular">
-            I am a <strong className="text-foreground font-hanken font-medium">First-Year CSE Student</strong> at Future Institute of Engineering and Management (MAKAUT), Kolkata, dedicated to building strong fundamentals with C, C++, Python, HTML, and SQL, along with DBMS and Computer Networking. Guided by consistent learning and the discipline the Army represents, I turn what I learn into practical projects. Always curious about technology, I focus on learning step by step and growing into a well-grounded developer.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
+            I am a <strong className="text-foreground font-hanken font-medium">First-Year CSE Student</strong> at Future Institute of Engineering and Management (MAKAUT), Kolkata, dedicated to building strong fundamentals with{' '}
             <a
               href="https://en.cppreference.com/w/c/language.html"
               target="_blank"
@@ -281,6 +279,7 @@ const Hero = () => {
               <SiC className="h-3.5 w-3.5 text-[#A8B9CC]" aria-hidden="true" />
               <span>C</span>
             </a>
+            ,{' '}
             <a
               href="https://en.cppreference.com/w/"
               target="_blank"
@@ -290,6 +289,7 @@ const Hero = () => {
               <SiCplusplus className="h-3.5 w-3.5 text-[#00599C]" aria-hidden="true" />
               <span>C++</span>
             </a>
+            ,{' '}
             <a
               href="https://www.python.org/"
               target="_blank"
@@ -299,6 +299,7 @@ const Hero = () => {
               <SiPython className="h-3.5 w-3.5 text-[#3776AB]" aria-hidden="true" />
               <span>Python</span>
             </a>
+            ,{' '}
             <a
               href="https://developer.mozilla.org/en-US/docs/Web/HTML"
               target="_blank"
@@ -308,6 +309,7 @@ const Hero = () => {
               <SiHtml5 className="h-3.5 w-3.5 text-[#E34F26]" aria-hidden="true" />
               <span>HTML5</span>
             </a>
+            , and{' '}
             <a
               href="https://www.w3.org/TR/sql-92/"
               target="_blank"
@@ -317,6 +319,7 @@ const Hero = () => {
               <Database className="h-3.5 w-3.5" aria-hidden="true" />
               <span>SQL</span>
             </a>
+            , along with{' '}
             <a
               href="https://www.ibm.com/think/topics/dbms"
               target="_blank"
@@ -325,7 +328,8 @@ const Hero = () => {
             >
               <ServerCog className="h-3.5 w-3.5" aria-hidden="true" />
               <span>DBMS</span>
-            </a>
+            </a>{' '}
+            and{' '}
             <a
               href="https://www.cisco.com/site/us/en/learn/topics/networking/what-is-computer-networking.html"
               target="_blank"
@@ -335,7 +339,8 @@ const Hero = () => {
               <Network className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Computer Networking</span>
             </a>
-          </div>
+            . Guided by consistent learning and the discipline the Army represents, I turn what I learn into practical projects. Always curious about technology, I focus on learning step by step and growing into a well-grounded developer.
+          </p>
         </div>
 
         {/* Buttons */}
