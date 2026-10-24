@@ -83,38 +83,23 @@ export default function Gears() {
 
             <ul className="space-y-4">
               {[
-                { name: 'Notion', url: 'https://www.notion.com/' },
                 { name: 'VS Code', url: 'https://code.visualstudio.com/' },
-                { name: 'Cursor', url: 'https://cursor.com/download' },
-                { name: 'Figma', url: 'https://www.figma.com/' },
+                { name: 'Antigravity IDE', url: 'https://antigravity.google' },
+                { name: 'Git', url: 'https://git-scm.com' },
+                { name: 'GitHub', url: 'https://github.com' },
                 {
                   name: 'GitHub Desktop',
                   url: 'https://desktop.github.com/download/',
                 },
-                {
-                  name: 'Pycharm',
-                  url: 'https://www.jetbrains.com/pycharm/download/?section=windows',
-                },
-                {
-                  name: 'IntelliJ IDEA',
-                  url: 'https://www.jetbrains.com/idea/download/?section=windows',
-                },
-                { name: 'npm', url: 'https://www.npmjs.com/' },
-                { name: 'Node.js', url: 'https://nodejs.org/en/' },
-                { name: 'Postman', url: 'https://www.postman.com/downloads/' },
                 { name: 'Vercel', url: 'https://vercel.com/home' },
                 { name: 'Netlify', url: 'https://app.netlify.com/' },
-
+                { name: 'Notion', url: 'https://www.notion.com/' },
+                { name: 'Figma', url: 'https://www.figma.com/' },
+                { name: 'npm', url: 'https://www.npmjs.com/' },
                 {
                   name: 'VLC',
                   url: 'https://vlc-media-player.en.softonic.com/download?ex=RAMP-3507.0&rex=true',
                 },
-                { name: 'IDM', url: 'https://www.internetdownloadmanager.com/' },
-                {
-                  name: 'qBittorrent',
-                  url: 'https://www.qbittorrent.org/download',
-                },
-                { name: 'OBS Studio', url: 'https://obsproject.com/download' },
                 { name: 'Discord', url: 'https://discord.com/download' },
                 {
                   name: 'Spotify',
