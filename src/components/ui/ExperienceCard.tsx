@@ -78,14 +78,18 @@ export function ExperienceCard({ experience, isOpen, onClick, alwaysOpen = false
                     </p>
 
                     {/* Location (Desktop) */}
-                    <p className="hidden sm:block text-muted-foreground text-sm md:text-base font-hanken">
-                        {experience.location}
-                    </p>
+                    {experience.location && (
+                        <p className="hidden sm:block text-muted-foreground text-sm md:text-base font-hanken">
+                            {experience.location}
+                        </p>
+                    )}
 
                     {/* Location (Mobile) */}
-                    <p className="block sm:hidden text-muted-foreground font-hanken text-xs">
-                        {experience.location.includes('(') ? experience.location.replace(/.*\((.*)\)/, '$1') : experience.location}
-                    </p>
+                    {experience.location && (
+                        <p className="block sm:hidden text-muted-foreground font-hanken text-xs">
+                            {experience.location.includes('(') ? experience.location.replace(/.*\((.*)\)/, '$1') : experience.location}
+                        </p>
+                    )}
                 </div>
             </div>
 

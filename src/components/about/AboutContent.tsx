@@ -55,7 +55,7 @@ export const AboutContent = () => {
                                 rel="noopener noreferrer"
                                 className="text-[#00DC82] no-underline"
                             >
-                                Future Institute of Engineering
+                                Future Institute of Engineering and Management
                             </a>{' '}
                             (2026 - 2030)
                         </p>

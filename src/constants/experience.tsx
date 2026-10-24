@@ -1,11 +1,10 @@
 import React from 'react';
 import { GitBranch } from 'lucide-react';
+import { SiC, SiCplusplus } from 'react-icons/si';
 import Github from '../components/svgs/Github';
 import JavaScript from '../components/svgs/JavaScript';
-import ReactIcon from '../components/svgs/ReactIcon';
-import TailwindCss from '../components/svgs/TailwindCss';
-import TypeScript from '../components/svgs/TypeScript';
-import { Java } from '../components/svgs/Java';
+import Html from '../components/svgs/Html';
+import CSS from '../components/svgs/CSS';
 import { Python } from '../components/svgs/Python';
 
 export interface ExperienceInterface {
@@ -15,7 +14,7 @@ export interface ExperienceInterface {
     position: string;
     startDate: string;
     endDate?: string;
-    location: string;
+    location?: string;
     technologies: { name: string; icon: React.ReactNode }[];
     description: string[];
 }
@@ -33,15 +32,13 @@ export const experiences: ExperienceInterface[] = [
             'Continuously improving coding, debugging, and problem-solving skills.',
         ],
         technologies: [
-            { name: 'React', icon: <ReactIcon /> },
-            { name: 'TypeScript', icon: <TypeScript /> },
+            { name: 'HTML', icon: <Html /> },
+            { name: 'CSS', icon: <CSS /> },
             { name: 'JavaScript', icon: <JavaScript /> },
-            { name: 'Tailwind CSS', icon: <TailwindCss /> },
         ],
     },
     {
         company: 'GitHub',
-        location: 'Remote',
         position: 'Open Source Contributor',
         startDate: '2026',
         endDate: 'Present',
@@ -56,7 +53,7 @@ export const experiences: ExperienceInterface[] = [
         ],
     },
     {
-        company: 'Future Institute of Engineering',
+        company: 'Future Institute of Engineering and Management',
         location: 'Kolkata, West Bengal',
         position: 'Computer Science Engineering Student',
         startDate: '2026',
@@ -67,9 +64,9 @@ export const experiences: ExperienceInterface[] = [
             'Applying new concepts through hands-on projects.',
         ],
         technologies: [
-            { name: 'JavaScript', icon: <JavaScript /> },
+            { name: 'C', icon: <SiC className="text-[#A8B9CC]" /> },
+            { name: 'C++', icon: <SiCplusplus className="text-[#00599C]" /> },
             { name: 'Python', icon: <Python /> },
-            { name: 'Java', icon: <Java /> },
         ],
     },
 ];
