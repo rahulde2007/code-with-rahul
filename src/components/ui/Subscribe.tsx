@@ -10,7 +10,6 @@ const Subscribe: React.FC<SubscribeProps> = ({
   postTitle = 'Mastering Gradient Borders in CSS 🌈✨',
 }) => {
   const [email, setEmail] = useState('');
-  const [consent, setConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -34,12 +33,6 @@ const Subscribe: React.FC<SubscribeProps> = ({
     if (!trimmedEmail) {
       setStatus('error');
       setMessage('Please enter your email address.');
-      return;
-    }
-
-    if (!consent) {
-      setStatus('error');
-      setMessage('Please check the consent box to subscribe.');
       return;
     }
 
@@ -158,8 +151,8 @@ const Subscribe: React.FC<SubscribeProps> = ({
                   />
                   <button
                     type="submit"
-                    disabled={isSubmitting || !consent}
-                    title={!consent ? 'Please accept the consent checkbox below' : 'Subscribe'}
+                    disabled={isSubmitting || !email.trim()}
+                    title="Subscribe"
                     className="flex items-center justify-center h-9 px-4 bg-primary text-primary-foreground rounded-xl active:scale-95 transition-all font-outfit text-xs font-semibold hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed group shadow-sm flex-shrink-0"
                   >
                     {isSubmitting ? (
@@ -180,23 +173,6 @@ const Subscribe: React.FC<SubscribeProps> = ({
                     )}
                   </button>
                 </div>
-
-                {/* Consent Checkbox */}
-                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors select-none pt-1">
-                  <input
-                    type="checkbox"
-                    checked={consent}
-                    onChange={(e) => {
-                      setConsent(e.target.checked);
-                      if (status === 'error' && e.target.checked) setStatus('idle');
-                    }}
-                    disabled={isSubmitting}
-                    className="mt-0.5 h-3.5 w-3.5 rounded border-border text-[#00DC82] focus:ring-[#00DC82] cursor-pointer accent-[#00DC82]"
-                  />
-                  <span className="leading-tight font-poppins text-[11px] sm:text-xs text-muted-foreground">
-                    Ami newsletter pete chai, ja jekono shomoy unsubscribe kora jabe
-                  </span>
-                </label>
 
                 {/* Error / Feedback Message */}
                 {status === 'error' && (

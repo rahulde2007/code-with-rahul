@@ -9,6 +9,7 @@ import {
 import GiscusComments from './ui/GiscusComments';
 import ShareModal from './modals/ShareModal';
 import { useBlogReactions } from '../hooks/useBlogReactions';
+import { useBlogClaps } from '../hooks/useBlogClaps';
 import { commentService } from '../lib/supabase';
 import LoveReactionButton from './ui/LoveReactionButton';
 import ReadingProgressPill from './ui/ReadingProgressPill';
@@ -102,13 +103,17 @@ const BlogContent = () => {
     blogLoves,
     userHasLoved,
     lovingBlog,
-    blogLikes,
-    userHasLiked,
-    likingBlog,
     blogReactionsError,
     handleBlogLove,
-    handleBlogLike,
   } = useBlogReactions(slug);
+
+  // Blog claps hook
+  const {
+    blogClaps,
+    userHasClapped,
+    clappingBlog,
+    handleBlogClap,
+  } = useBlogClaps(slug);
 
 
 
@@ -217,13 +222,13 @@ const BlogContent = () => {
 
               <BlogReactions
                 blogLoves={blogLoves}
-                blogLikes={blogLikes}
+                blogClaps={blogClaps}
                 userHasLoved={userHasLoved}
-                userHasLiked={userHasLiked}
+                userHasClapped={userHasClapped}
                 lovingBlog={lovingBlog}
-                likingBlog={likingBlog}
+                clappingBlog={clappingBlog}
                 onLove={handleBlogLove}
-                onLike={handleBlogLike}
+                onClap={handleBlogClap}
                 onShare={() => setShowShareModal(true)}
               />
             </div>

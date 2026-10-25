@@ -4,59 +4,82 @@ import { ClappingHandsIcon } from '../icons/SocialIcons';
 
 interface BlogReactionsProps {
   blogLoves: number;
-  blogLikes: number;
+  blogClaps?: number;
+  blogLikes?: number;
   userHasLoved: boolean;
-  userHasLiked: boolean;
+  userHasClapped?: boolean;
+  userHasLiked?: boolean;
   lovingBlog: boolean;
-  likingBlog: boolean;
+  clappingBlog?: boolean;
+  likingBlog?: boolean;
   onLove: () => void;
-  onLike: () => void;
+  onClap?: () => void;
+  onLike?: () => void;
   onShare: () => void;
 }
 
 export const BlogReactions: React.FC<BlogReactionsProps> = ({
   blogLoves,
+  blogClaps,
   blogLikes,
   userHasLoved,
+  userHasClapped,
   userHasLiked,
   lovingBlog,
+  clappingBlog,
   likingBlog,
   onLove,
+  onClap,
   onLike,
   onShare,
 }) => {
+  const clapsCount = typeof blogClaps === 'number' ? blogClaps : (blogLikes ?? 0);
+  const isClapped = Boolean(userHasClapped ?? userHasLiked);
+  const isClapLoading = Boolean(clappingBlog ?? likingBlog);
+  const handleClap = onClap || onLike || (() => {});
+
   return (
     <div className="flex items-center gap-3">
+      {/* Heart / Love Button */}
       <button
         onClick={onLove}
         disabled={userHasLoved || lovingBlog}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default ${userHasLoved
-          ? 'bg-red-500/15 border-transparent text-red-500'
-          : 'bg-card border-border text-foreground hover:bg-accent'
-          }`}
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default ${
+          userHasLoved
+            ? 'bg-red-500/15 border-transparent text-red-500'
+            : 'bg-card border-border text-foreground hover:bg-accent'
+        }`}
         aria-label="Love this post"
       >
         <Heart
-          className={`h-4 w-4 group-hover:scale-110 transition-transform duration-200 ${userHasLoved ? 'fill-red-600 text-red-500' : 'fill-none'
-            }`}
+          className={`h-4 w-4 group-hover:scale-110 transition-transform duration-200 ${
+            userHasLoved ? 'fill-red-600 text-red-500' : 'fill-none'
+          }`}
         />
         <span>{blogLoves}</span>
       </button>
+
+      {/* Clapping Hands Button */}
       <button
-        onClick={onLike}
-        disabled={userHasLiked || likingBlog}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default ${userHasLiked
-          ? 'bg-blue-500/15 border-transparent text-blue-500'
-          : 'bg-card border-border text-foreground hover:bg-accent'
-          }`}
+        onClick={handleClap}
+        disabled={isClapped || isClapLoading}
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default ${
+          isClapped
+            ? 'bg-blue-500/15 border-transparent text-blue-500'
+            : 'bg-card border-border text-foreground hover:bg-accent'
+        }`}
         aria-label="Clap for this post"
       >
         <ClappingHandsIcon
           size="16"
-          className={`group-hover:scale-110 transition-transform duration-200 ${userHasLiked ? 'fill-blue-500' : 'fill-current text-foreground'}`}
+          className={`group-hover:scale-110 transition-transform duration-200 ${
+            isClapped ? 'fill-blue-500' : 'fill-current text-foreground'
+          }`}
         />
-        <span>{blogLikes}</span>
+        <span>{clapsCount}</span>
       </button>
+
+      {/* Share Button */}
       <button
         onClick={onShare}
         className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl text-foreground hover:bg-accent transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer"

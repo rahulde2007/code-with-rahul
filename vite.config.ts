@@ -8,6 +8,7 @@ import {
 import sponsorsHandler from './api/sponsors'
 import likesHandler from './api/likes'
 import subscribeHandler from './api/subscribe'
+import clapsHandler from './api/claps'
 
 const githubContributionsApi = (): Plugin => ({
   name: 'github-contributions-api',
@@ -82,6 +83,7 @@ export default defineConfig(({ mode }) => {
       createApiPlugin('sponsors-api', '/api/sponsors', sponsorsHandler),
       createApiPlugin('likes-api', '/api/likes', likesHandler),
       createApiPlugin('subscribe-api', '/api/subscribe', subscribeHandler),
+      createApiPlugin('claps-api', '/api/claps', clapsHandler),
     ],
   };
 })
