@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import mdx from '@mdx-js/rollup'
 import {
@@ -6,6 +6,8 @@ import {
   isSupportedContributionYear,
 } from './src/lib/githubContributions'
 import sponsorsHandler from './api/sponsors'
+import likesHandler from './api/likes'
+import subscribeHandler from './api/subscribe'
 
 const githubContributionsApi = (): Plugin => ({
   name: 'github-contributions-api',
@@ -46,20 +48,20 @@ const githubContributionsApi = (): Plugin => ({
   },
 });
 
-const sponsorsApi = (): Plugin => ({
-  name: 'sponsors-api',
+const createApiPlugin = (name: string, route: string, handler: any): Plugin => ({
+  name,
   configureServer(server) {
-    server.middlewares.use('/api/sponsors', async (req, res) => {
+    server.middlewares.use(route, async (req, res) => {
       res.setHeader('Content-Type', 'application/json');
-      await sponsorsHandler(req, {
-        status(code) {
+      await handler(req, {
+        status(code: number) {
           res.statusCode = code;
           return this;
         },
-        setHeader(name, value) {
+        setHeader(name: string, value: string) {
           res.setHeader(name, value);
         },
-        json(body) {
+        json(body: unknown) {
           res.end(JSON.stringify(body));
         },
       });
@@ -67,11 +69,20 @@ const sponsorsApi = (): Plugin => ({
   },
 });
 
-export default defineConfig({
-  plugins: [
-    { enforce: 'pre', ...mdx() },
-    react(),
-    githubContributionsApi(),
-    sponsorsApi(),
-  ],
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  // Populate process.env for local serverless handlers
+  Object.assign(process.env, env);
+
+  return {
+    plugins: [
+      { enforce: 'pre', ...mdx() },
+      react(),
+      githubContributionsApi(),
+      createApiPlugin('sponsors-api', '/api/sponsors', sponsorsHandler),
+      createApiPlugin('likes-api', '/api/likes', likesHandler),
+      createApiPlugin('subscribe-api', '/api/subscribe', subscribeHandler),
+    ],
+  };
 })
+

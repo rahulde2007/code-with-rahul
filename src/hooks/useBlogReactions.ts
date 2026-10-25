@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { commentService, isSupabaseConfigured, supabase } from '../lib/supabase';
+import { getVisitorId } from '../lib/visitor';
 
 interface UseBlogReactionsReturn {
   // State
@@ -55,19 +56,35 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
   const loadBlogReactions = async () => {
     if (!slug) return;
     loadUserReactionHistory();
+
+    const visitorId = getVisitorId();
+
     try {
-      const [lovesResult, likesResult] = await Promise.allSettled([
-        commentService.getBlogLovesCount(slug),
-        commentService.getBlogLikesCount(slug),
-      ]);
-      if (lovesResult.status === 'fulfilled') setBlogLoves(lovesResult.value);
-      if (likesResult.status === 'fulfilled') setBlogLikes(likesResult.value);
-      if (lovesResult.status === 'rejected' || likesResult.status === 'rejected') {
-        console.warn('Unable to load one or more blog reaction counts:', {
-          loves: lovesResult.status === 'rejected' ? lovesResult.reason : undefined,
-          likes: likesResult.status === 'rejected' ? likesResult.reason : undefined,
+      // 1. Fetch real like count and visitor like status from /api/likes
+      const likesPromise = fetch(
+        `/api/likes?slug=${encodeURIComponent(slug)}&visitorId=${encodeURIComponent(visitorId)}`
+      )
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+          return res.json();
+        })
+        .then((data) => {
+          if (typeof data.like_count === 'number') {
+            setBlogLoves(data.like_count);
+          }
+          if (data.hasLiked) {
+            setUserHasLoved(true);
+            saveUserReaction('love');
+          }
         });
-      }
+
+      // 2. Fetch claps count
+      const clapsPromise = commentService
+        .getBlogLikesCount(slug)
+        .then((count) => setBlogLikes(count))
+        .catch((err) => console.warn('Unable to load blog claps:', err));
+
+      await Promise.allSettled([likesPromise, clapsPromise]);
     } catch (error) {
       console.warn('Unable to load blog reactions:', error);
     }
@@ -75,16 +92,44 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
 
   const handleBlogLove = async () => {
     if (!slug || userHasLoved || lovingBlog) return;
+
+    const previousCount = blogLoves;
+    const visitorId = getVisitorId();
+
+    // 1. Optimistic update
+    setLovingBlog(true);
+    setUserHasLoved(true);
+    setBlogLoves((prev) => prev + 1);
+    saveUserReaction('love');
+    setBlogReactionsError(null);
+
     try {
-      setLovingBlog(true);
-      await commentService.loveBlogPost(slug, userId);
-      saveUserReaction('love');
-      setBlogLoves((p) => p + 1);
-      setUserHasLoved(true);
-      setBlogReactionsError(null);
+      // 2. Persist like via serverless function
+      const response = await fetch('/api/likes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ slug, visitorId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (typeof result.like_count === 'number') {
+        setBlogLoves(result.like_count);
+      }
+      if (result.alreadyLiked) {
+        setUserHasLoved(true);
+      }
     } catch (error) {
-      console.error('Failed to save blog love:', error);
-      setBlogReactionsError('Failed to love the post.');
+      console.error('Failed to save blog like:', error);
+      // Rollback optimistic update
+      setBlogLoves(previousCount);
+      setUserHasLoved(false);
+      setBlogReactionsError('Failed to record like. Please try again.');
     } finally {
       setLovingBlog(false);
     }
@@ -100,8 +145,8 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
       setUserHasLiked(true);
       setBlogReactionsError(null);
     } catch (error) {
-      console.error('Failed to save blog like:', error);
-      setBlogReactionsError('Failed to like the post.');
+      console.error('Failed to save blog clap:', error);
+      setBlogReactionsError('Failed to clap for the post.');
     } finally {
       setLikingBlog(false);
     }
@@ -128,16 +173,20 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
 
     try {
       channel = supabase.channel(`blog-reactions-${slug}`);
+
+      // Listen to post_likes real-time changes
       channel.on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'blog_loves',
-          filter: `blog_slug=eq.${slug}`,
+          table: 'post_likes',
+          filter: `post_slug=eq.${slug}`,
         },
         () => void loadBlogReactions()
       );
+
+      // Listen to blog_likes (claps)
       channel.on(
         'postgres_changes',
         {
@@ -148,6 +197,7 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
         },
         () => void loadBlogReactions()
       );
+
       channel.subscribe();
     } catch (error) {
       console.error('Unable to subscribe to blog reactions:', error);
@@ -177,3 +227,4 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
     handleBlogLike,
   };
 };
+
