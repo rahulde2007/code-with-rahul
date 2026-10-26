@@ -34,6 +34,7 @@ const Photos = () => {
         photoLoveCounts,
         userLovedPhotos,
         lovingPhoto,
+        isLoading,
         handleLovePhoto,
     } = usePhotoLikes();
     const [showHeart, setShowHeart] = useState<Record<string, boolean>>({});
@@ -423,7 +424,11 @@ const Photos = () => {
                                                     ? 'text-white/70'
                                                     : 'text-white/70 group-hover:text-white'
                                                     }`}>
-                                                    {photoLoveCounts[photo.photoId] ?? 0}
+                                                    {isLoading || photoLoveCounts[photo.photoId] === undefined ? (
+                                                        <span className="inline-block w-2.5 h-3 bg-white/30 rounded-sm animate-pulse" />
+                                                    ) : (
+                                                        photoLoveCounts[photo.photoId]
+                                                    )}
                                                 </span>
                                             </motion.button>
                                         </div>

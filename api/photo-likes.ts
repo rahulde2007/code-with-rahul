@@ -21,10 +21,14 @@ interface ApiResponse {
 }
 
 const PHOTO_ID_REGEX = /^[a-zA-Z0-9_-]{1,100}$/;
-const VISITOR_ID_REGEX = /^[a-zA-Z0-9_-]{8,64}$/;
+const VISITOR_ID_REGEX = /^[a-zA-Z0-9_-]{6,128}$/;
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).json({});
+  }
 
   const ip = getClientIp(req);
 
@@ -39,193 +43,311 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     supabase = getAdminSupabase();
   } catch (err: any) {
-    console.error('Supabase initialization error in photo-likes API:', err.message);
+    console.error('Supabase initialization error in photo-likes API:', err?.message || err);
     return res.status(500).json({ error: 'Database service configuration error.' });
   }
 
-  // Handle GET request: support both single photoId and batch/bulk load
+  // Handle GET request: support single photoId and batch GET
   if (req.method === 'GET') {
     const query = parseRequestQuery(req);
     const photoId = query.photoId?.trim();
     const visitorId = query.visitorId?.trim();
     const photoIdsParam = query.photoIds?.trim();
 
-    // Case 1: Batch / Bulk GET (no single photoId provided, or photoIdsParam provided)
-    if (!photoId) {
-      try {
-        let photoQuery = supabase.from('photo_likes').select('photo_id, like_count');
-        if (photoIdsParam) {
-          const ids = photoIdsParam
-            .split(',')
-            .map((id) => id.trim())
-            .filter((id) => PHOTO_ID_REGEX.test(id));
-          if (ids.length > 0) {
-            photoQuery = photoQuery.in('photo_id', ids);
-          }
-        }
+    // 1. Single photo GET: ?photoId=...&visitorId=...
+    if (photoId) {
+      if (!PHOTO_ID_REGEX.test(photoId)) {
+        return res.status(400).json({ error: 'Valid photoId is required.' });
+      }
 
-        const [likesResult, visitorsResult] = await Promise.all([
-          photoQuery,
+      try {
+        const [likeResult, visitorResult] = await Promise.all([
+          supabase
+            .from('photo_likes')
+            .select('like_count')
+            .eq('photo_id', photoId)
+            .maybeSingle(),
           visitorId && VISITOR_ID_REGEX.test(visitorId)
             ? supabase
                 .from('photo_like_visitors')
-                .select('photo_id')
+                .select('visitor_id')
+                .eq('photo_id', photoId)
                 .eq('visitor_id', visitorId)
-            : Promise.resolve({ data: [], error: null }),
+                .maybeSingle()
+            : Promise.resolve({ data: null, error: null }),
         ]);
 
-        if (likesResult.error) {
-          // If table doesn't exist yet in Supabase, return empty counts gracefully
-          if (
-            likesResult.error.message?.includes('relation "public.photo_likes" does not exist') ||
-            likesResult.error.code === '42P01'
-          ) {
-            return res.status(200).json({ counts: {}, userLikes: [] });
-          }
-          console.error('Error fetching batch photo likes:', likesResult.error);
-          return res.status(500).json({ error: 'Failed to fetch photo likes.' });
+        if (likeResult.error) {
+          console.error('Error fetching single photo likes:', likeResult.error.message || likeResult.error);
+          return res.status(500).json({ error: likeResult.error.message || 'Failed to fetch photo likes.' });
         }
 
-        const counts: Record<string, number> = {};
-        if (Array.isArray(likesResult.data)) {
-          for (const item of likesResult.data) {
-            if (item.photo_id) {
-              counts[item.photo_id] =
-                typeof item.like_count === 'number'
-                  ? item.like_count
-                  : Number(item.like_count) || 0;
-            }
-          }
-        }
+        const count =
+          typeof likeResult.data?.like_count === 'number'
+            ? likeResult.data.like_count
+            : Number(likeResult.data?.like_count) || 0;
+        const hasLiked = Boolean(visitorResult.data);
 
-        const userLikes: string[] = [];
-        if (Array.isArray(visitorsResult.data)) {
-          for (const item of visitorsResult.data) {
-            if (item.photo_id) {
-              userLikes.push(item.photo_id);
-            }
-          }
-        }
-
-        return res.status(200).json({ counts, userLikes });
-      } catch (error: any) {
-        console.error('Unexpected error in batch GET /api/photo-likes:', error);
-        return res.status(500).json({ error: 'Internal server error.' });
+        return res.status(200).json({
+          likeCount: count,
+          like_count: count,
+          hasLiked,
+        });
+      } catch (err: any) {
+        console.error('Unexpected error in single GET /api/photo-likes:', err?.message || err);
+        return res.status(500).json({ error: err?.message || 'Internal server error.' });
       }
     }
 
-    // Case 2: Single photo GET
-    if (!PHOTO_ID_REGEX.test(photoId)) {
-      return res.status(400).json({ error: 'Valid photoId is required.' });
-    }
-
+    // 2. Batch GET: ?photoIds=a,b,c&visitorId=... (or ?visitorId=...)
     try {
-      const [likeResult, visitorResult] = await Promise.all([
-        supabase
-          .from('photo_likes')
-          .select('like_count')
-          .eq('photo_id', photoId)
-          .maybeSingle(),
+      let photoQuery = supabase.from('photo_likes').select('photo_id, like_count');
+      const requestedIds: string[] = [];
+
+      if (photoIdsParam) {
+        const ids = photoIdsParam
+          .split(',')
+          .map((id) => id.trim())
+          .filter((id) => PHOTO_ID_REGEX.test(id));
+        if (ids.length > 0) {
+          requestedIds.push(...ids);
+          photoQuery = photoQuery.in('photo_id', ids);
+        }
+      }
+
+      let visitorQuery =
         visitorId && VISITOR_ID_REGEX.test(visitorId)
           ? supabase
               .from('photo_like_visitors')
-              .select('visitor_id')
-              .eq('photo_id', photoId)
+              .select('photo_id')
               .eq('visitor_id', visitorId)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-      ]);
+          : null;
 
-      if (likeResult.error) {
-        if (
-          likeResult.error.message?.includes('relation "public.photo_likes" does not exist') ||
-          likeResult.error.code === '42P01'
-        ) {
-          return res.status(200).json({ like_count: 0, hasLiked: false });
-        }
-        console.error('Error fetching single photo likes:', likeResult.error);
-        return res.status(500).json({ error: 'Failed to fetch photo likes.' });
+      if (visitorQuery && requestedIds.length > 0) {
+        visitorQuery = visitorQuery.in('photo_id', requestedIds);
       }
 
-      const likeCount = likeResult.data?.like_count ?? 0;
-      const hasLiked = Boolean(visitorResult.data);
+      const [likesResult, visitorsResult] = await Promise.all([
+        photoQuery,
+        visitorQuery ? visitorQuery : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      if (likesResult.error) {
+        console.error('Error fetching batch photo likes:', likesResult.error.message || likesResult.error);
+        return res.status(500).json({ error: likesResult.error.message || 'Failed to fetch photo likes.' });
+      }
+
+      const counts: Record<string, number> = {};
+      const hasLiked: Record<string, boolean> = {};
+      const userLikes: string[] = [];
+      const likes: Record<string, { likeCount: number; hasLiked: boolean }> = {};
+
+      // Seed with requested IDs if available
+      for (const id of requestedIds) {
+        counts[id] = 0;
+        hasLiked[id] = false;
+        likes[id] = { likeCount: 0, hasLiked: false };
+      }
+
+      if (Array.isArray(likesResult.data)) {
+        for (const item of likesResult.data) {
+          if (item.photo_id) {
+            const count =
+              typeof item.like_count === 'number'
+                ? item.like_count
+                : Number(item.like_count) || 0;
+            counts[item.photo_id] = count;
+          }
+        }
+      }
+
+      if (Array.isArray(visitorsResult.data)) {
+        for (const item of visitorsResult.data) {
+          if (item.photo_id) {
+            hasLiked[item.photo_id] = true;
+            userLikes.push(item.photo_id);
+          }
+        }
+      }
+
+      // Populate hasLiked and likes mapping for all present counts
+      for (const [key, count] of Object.entries(counts)) {
+        const isLiked = Boolean(hasLiked[key]);
+        hasLiked[key] = isLiked;
+        likes[key] = {
+          likeCount: count,
+          hasLiked: isLiked,
+        };
+      }
 
       return res.status(200).json({
-        like_count: typeof likeCount === 'number' ? likeCount : Number(likeCount) || 0,
+        counts,
         hasLiked,
+        userLikes,
+        likes,
       });
-    } catch (error: any) {
-      console.error('Unexpected error in single GET /api/photo-likes:', error);
-      return res.status(500).json({ error: 'Internal server error.' });
+    } catch (err: any) {
+      console.error('Unexpected error in batch GET /api/photo-likes:', err?.message || err);
+      return res.status(500).json({ error: err?.message || 'Internal server error.' });
     }
   }
 
   // Handle POST request: record photo like atomically
   if (req.method === 'POST') {
-    const body = await parseRequestBody(req);
+    let body: any;
+    try {
+      body = await parseRequestBody(req);
+    } catch (parseErr: any) {
+      console.error('Error parsing request body in POST /api/photo-likes:', parseErr?.message || parseErr);
+      return res.status(400).json({ error: 'Invalid request body.' });
+    }
+
     const photoId = typeof body?.photoId === 'string' ? body.photoId.trim() : '';
     const visitorId = typeof body?.visitorId === 'string' ? body.visitorId.trim() : '';
+    const action = typeof body?.action === 'string' ? body.action.trim() : 'like';
 
-    if (!photoId || !PHOTO_ID_REGEX.test(photoId)) {
-      return res.status(400).json({ error: 'Invalid or missing photoId.' });
+    if (!photoId) {
+      return res.status(400).json({ error: 'photoId is required.' });
+    }
+    if (!visitorId) {
+      return res.status(400).json({ error: 'visitorId is required.' });
     }
 
-    if (!visitorId || !VISITOR_ID_REGEX.test(visitorId)) {
-      return res.status(400).json({ error: 'Invalid or missing visitorId.' });
+    if (!PHOTO_ID_REGEX.test(photoId)) {
+      return res.status(400).json({ error: 'Invalid photoId format.' });
+    }
+    if (!VISITOR_ID_REGEX.test(visitorId)) {
+      return res.status(400).json({ error: 'Invalid visitorId format.' });
     }
 
-    try {
-      // 1. First attempt: call Postgres RPC `increment_photo_like` if defined
-      const { data: rpcData, error: rpcError } = await supabase.rpc('increment_photo_like', {
-        photo_id_input: photoId,
-        visitor_id_input: visitorId,
-      });
+    // Optional unlike handling: isolated strictly to this photoId
+    if (action === 'unlike') {
+      try {
+        const { error: deleteError } = await supabase
+          .from('photo_like_visitors')
+          .delete()
+          .eq('photo_id', photoId)
+          .eq('visitor_id', visitorId);
 
-      if (!rpcError && rpcData) {
-        const parsed = typeof rpcData === 'string' ? JSON.parse(rpcData) : rpcData;
+        if (deleteError) {
+          console.error('Error deleting from photo_like_visitors:', deleteError.message || deleteError);
+          return res.status(500).json({ error: deleteError.message || 'Failed to unlike photo.' });
+        }
+
+        const { data: currentData, error: fetchError } = await supabase
+          .from('photo_likes')
+          .select('like_count')
+          .eq('photo_id', photoId)
+          .maybeSingle();
+
+        if (fetchError) {
+          console.error('Error fetching current like count during unlike:', fetchError.message || fetchError);
+          return res.status(500).json({ error: fetchError.message || 'Failed to fetch like count.' });
+        }
+
+        const currentCount =
+          typeof currentData?.like_count === 'number'
+            ? currentData.like_count
+            : Number(currentData?.like_count) || 0;
+
+        const nextCount = Math.max(0, currentCount - 1);
+
+        const { data: updatedData, error: updateError } = await supabase
+          .from('photo_likes')
+          .upsert(
+            { photo_id: photoId, like_count: nextCount },
+            { onConflict: 'photo_id' }
+          )
+          .select('like_count')
+          .single();
+
+        if (updateError) {
+          console.error('Error updating photo_likes during unlike:', updateError.message || updateError);
+          return res.status(500).json({ error: updateError.message || 'Failed to update like count.' });
+        }
+
+        const finalCount =
+          typeof updatedData?.like_count === 'number'
+            ? updatedData.like_count
+            : nextCount;
+
         return res.status(200).json({
           success: true,
-          alreadyLiked: Boolean(parsed.alreadyLiked),
-          like_count: Number(parsed.like_count) || 0,
+          likeCount: finalCount,
+          like_count: finalCount,
+          hasLiked: false,
+          alreadyLiked: false,
         });
+      } catch (err: any) {
+        console.error('Unexpected error in unlike POST /api/photo-likes:', err?.message || err);
+        return res.status(500).json({ error: err?.message || 'Internal server error.' });
       }
+    }
 
-      // 2. Fallback if RPC is not installed: Atomic composite PK insertion followed by increment
-      // Primary key on photo_like_visitors is (photo_id, visitor_id)
+    // Like action: record visitor and increment count
+    try {
+      // 1. Insert visitor record into photo_like_visitors
       const { error: insertError } = await supabase
         .from('photo_like_visitors')
         .insert({ photo_id: photoId, visitor_id: visitorId });
 
       if (insertError) {
-        // Code 23505 is PostgreSQL unique constraint violation
-        if (insertError.code === '23505') {
-          const { data: currentData } = await supabase
+        // 23505 = duplicate primary key (photo_id, visitor_id) -> already liked
+        if (
+          insertError.code === '23505' ||
+          insertError.message?.includes('duplicate key') ||
+          insertError.message?.includes('unique constraint')
+        ) {
+          // Returning like: do not increment count, read and return current like_count
+          const { data: currentData, error: fetchError } = await supabase
             .from('photo_likes')
             .select('like_count')
             .eq('photo_id', photoId)
             .maybeSingle();
 
+          if (fetchError) {
+            console.error('Error fetching like count for duplicate visitor:', fetchError.message || fetchError);
+            return res.status(500).json({ error: fetchError.message || 'Failed to fetch like count.' });
+          }
+
+          const count =
+            typeof currentData?.like_count === 'number'
+              ? currentData.like_count
+              : Number(currentData?.like_count) || 0;
+
           return res.status(200).json({
             success: true,
+            likeCount: count,
+            like_count: count,
+            hasLiked: true,
             alreadyLiked: true,
-            like_count: currentData?.like_count ?? 0,
           });
         }
 
-        console.error('Error inserting into photo_like_visitors:', insertError);
-        return res.status(500).json({ error: 'Failed to record photo like.' });
+        console.error('Error inserting into photo_like_visitors:', insertError.message || insertError);
+        return res.status(500).json({ error: insertError.message || 'Failed to record photo like.' });
       }
 
-      // New visitor like recorded! Increment photo_likes.like_count
-      const { data: existingLike } = await supabase
+      // 2. Insert succeeded -> New unique like! Increment photo_likes.like_count +1
+      const { data: currentData, error: fetchError } = await supabase
         .from('photo_likes')
         .select('like_count')
         .eq('photo_id', photoId)
         .maybeSingle();
 
-      const nextCount = (existingLike?.like_count ?? 0) + 1;
+      if (fetchError) {
+        console.error('Error fetching current like count before increment:', fetchError.message || fetchError);
+        return res.status(500).json({ error: fetchError.message || 'Failed to fetch like count.' });
+      }
 
-      const { data: updatedLike, error: updateError } = await supabase
+      const currentCount =
+        typeof currentData?.like_count === 'number'
+          ? currentData.like_count
+          : Number(currentData?.like_count) || 0;
+
+      const nextCount = currentCount + 1;
+
+      const { data: updatedData, error: updateError } = await supabase
         .from('photo_likes')
         .upsert(
           { photo_id: photoId, like_count: nextCount },
@@ -235,21 +357,28 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         .single();
 
       if (updateError) {
-        console.error('Error updating photo_likes:', updateError);
-        return res.status(500).json({ error: 'Failed to update photo like count.' });
+        console.error('Error updating photo_likes count:', updateError.message || updateError);
+        return res.status(500).json({ error: updateError.message || 'Failed to update like count.' });
       }
+
+      const finalCount =
+        typeof updatedData?.like_count === 'number'
+          ? updatedData.like_count
+          : nextCount;
 
       return res.status(200).json({
         success: true,
+        likeCount: finalCount,
+        like_count: finalCount,
+        hasLiked: true,
         alreadyLiked: false,
-        like_count: updatedLike?.like_count ?? nextCount,
       });
-    } catch (error: any) {
-      console.error('Unexpected error in POST /api/photo-likes:', error);
-      return res.status(500).json({ error: 'Internal server error.' });
+    } catch (err: any) {
+      console.error('Unexpected error in POST /api/photo-likes:', err?.message || err);
+      return res.status(500).json({ error: err?.message || 'Internal server error.' });
     }
   }
 
-  res.setHeader('Allow', 'GET, POST');
+  res.setHeader('Allow', 'GET, POST, OPTIONS');
   return res.status(405).json({ error: 'Method Not Allowed' });
 }

@@ -7,35 +7,19 @@ export interface UsePhotoLikesReturn {
   photoLoveCounts: Record<string, number>;
   userLovedPhotos: Set<string>;
   lovingPhoto: boolean;
+  isLoading: boolean;
   photoLikesError: string | null;
   handleLovePhoto: (photoId: string) => Promise<void>;
   refreshPhotoLikes: () => Promise<void>;
 }
 
 export const usePhotoLikes = (): UsePhotoLikesReturn => {
-  // Initialize counts for all photos to 0
-  const [photoLoveCounts, setPhotoLoveCounts] = useState<Record<string, number>>(() => {
-    const counts: Record<string, number> = {};
-    for (const photo of photos) {
-      counts[photo.photoId] = 0;
-    }
-    return counts;
-  });
+  // Counts are initially undefined until batch GET completes
+  const [photoLoveCounts, setPhotoLoveCounts] = useState<Record<string, number>>({});
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [userLovedPhotos, setUserLovedPhotos] = useState<Set<string>>(() => {
-    try {
-      const stored = localStorage.getItem('lovedPhotos');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          return new Set<string>(parsed.map(String));
-        }
-      }
-    } catch (e) {
-      console.warn('Unable to load lovedPhotos from localStorage:', e);
-    }
-    return new Set<string>();
-  });
+  // Red heart is strictly driven by server's hasLiked response (localStorage cannot override server)
+  const [userLovedPhotos, setUserLovedPhotos] = useState<Set<string>>(new Set());
 
   const [lovingPhoto, setLovingPhoto] = useState(false);
   const [photoLikesError, setPhotoLikesError] = useState<string | null>(null);
@@ -43,6 +27,8 @@ export const usePhotoLikes = (): UsePhotoLikesReturn => {
   // Keep a ref to latest userLovedPhotos for race-condition guards in rapid clicks
   const userLovedPhotosRef = useRef(userLovedPhotos);
   userLovedPhotosRef.current = userLovedPhotos;
+
+  const hasFetchedBatchRef = useRef(false);
 
   const saveUserLovedToStorage = useCallback((photoId: string) => {
     try {
@@ -77,7 +63,11 @@ export const usePhotoLikes = (): UsePhotoLikesReturn => {
   const refreshPhotoLikes = useCallback(async () => {
     try {
       const visitorId = getVisitorId();
-      const res = await fetch(`/api/photo-likes?visitorId=${encodeURIComponent(visitorId)}`);
+      const allPhotoIds = photos.map((p) => p.photoId).join(',');
+      const res = await fetch(
+        `/api/photo-likes?photoIds=${encodeURIComponent(allPhotoIds)}&visitorId=${encodeURIComponent(visitorId)}`
+      );
+
       if (!res.ok) {
         throw new Error(`HTTP error ${res.status}`);
       }
@@ -85,26 +75,51 @@ export const usePhotoLikes = (): UsePhotoLikesReturn => {
       const data = await res.json();
 
       if (data && typeof data.counts === 'object') {
-        setPhotoLoveCounts((prev) => ({
-          ...prev,
-          ...data.counts,
-        }));
+        setPhotoLoveCounts((prev) => {
+          const nextCounts: Record<string, number> = { ...prev };
+          for (const photo of photos) {
+            if (typeof data.counts[photo.photoId] === 'number') {
+              nextCounts[photo.photoId] = data.counts[photo.photoId];
+            } else if (nextCounts[photo.photoId] === undefined) {
+              nextCounts[photo.photoId] = 0;
+            }
+          }
+          return nextCounts;
+        });
       }
 
-      if (Array.isArray(data.userLikes) && data.userLikes.length > 0) {
-        setUserLovedPhotos((prev) => {
-          const next = new Set(prev);
-          data.userLikes.forEach((id: string) => {
-            next.add(id);
-            saveUserLovedToStorage(id);
-          });
-          return next;
-        });
+      // Red heart is strictly set according to server hasLiked truth; localStorage cannot override server
+      const serverLoved = new Set<string>();
+      if (data?.hasLiked && typeof data.hasLiked === 'object') {
+        for (const [id, liked] of Object.entries(data.hasLiked)) {
+          if (liked) {
+            serverLoved.add(id);
+          }
+        }
+      } else if (Array.isArray(data?.userLikes)) {
+        for (const id of data.userLikes) {
+          if (typeof id === 'string') {
+            serverLoved.add(id);
+          }
+        }
+      }
+
+      setUserLovedPhotos(serverLoved);
+
+      // Sync localStorage with server response
+      try {
+        localStorage.setItem('lovedPhotos', JSON.stringify(Array.from(serverLoved)));
+      } catch (e) {
+        console.warn('Unable to sync lovedPhotos to localStorage:', e);
       }
     } catch (error) {
       console.warn('Unable to load photo likes:', error);
+      // Retain previous counts! Do NOT set to 0 if batch fetch fails
+      setPhotoLoveCounts((prev) => prev);
+    } finally {
+      setIsLoading(false);
     }
-  }, [saveUserLovedToStorage]);
+  }, []);
 
   const handleLovePhoto = useCallback(
     async (photoId: string) => {
@@ -140,13 +155,21 @@ export const usePhotoLikes = (): UsePhotoLikesReturn => {
         }
 
         const result = await response.json();
-        if (typeof result.like_count === 'number') {
+        const serverCount =
+          typeof result.likeCount === 'number'
+            ? result.likeCount
+            : typeof result.like_count === 'number'
+            ? result.like_count
+            : null;
+
+        if (serverCount !== null) {
           setPhotoLoveCounts((prev) => ({
             ...prev,
-            [photoId]: result.like_count,
+            [photoId]: serverCount,
           }));
         }
-        if (result.alreadyLiked) {
+
+        if (result.alreadyLiked || result.hasLiked) {
           setUserLovedPhotos((prev) => new Set(prev).add(photoId));
         }
       } catch (error) {
@@ -214,8 +237,10 @@ export const usePhotoLikes = (): UsePhotoLikesReturn => {
     return removeChannel;
   }, []);
 
-  // Fetch initial batch of likes on mount
+  // Fetch initial batch of likes on mount once (guarded against StrictMode double-fetch)
   useEffect(() => {
+    if (hasFetchedBatchRef.current) return;
+    hasFetchedBatchRef.current = true;
     refreshPhotoLikes();
   }, [refreshPhotoLikes]);
 
@@ -223,6 +248,7 @@ export const usePhotoLikes = (): UsePhotoLikesReturn => {
     photoLoveCounts,
     userLovedPhotos,
     lovingPhoto,
+    isLoading,
     photoLikesError,
     handleLovePhoto,
     refreshPhotoLikes,
