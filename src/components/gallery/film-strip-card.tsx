@@ -11,7 +11,7 @@ export type FilmStripCardProps = Readonly<
 const defaultFrames = [
   "/assets/photo2.webp",
   "/assets/photo4.webp",
-  "/assets/my.pdf",
+  "/assets/RAHUL_DE_Photo.png",
   "/assets/photo1.webp",
   "/assets/photo6.webp",
 ];
@@ -90,7 +90,7 @@ export const FilmStripCard = forwardRef<HTMLDivElement, FilmStripCardProps>(
               ) : (
                 <img
                   src={src}
-                  alt={`Frame ${frameNumber + 1}`}
+                  alt={frameNumber === 2 || src.includes("RAHUL_DE_Photo") ? "Rahul De" : `Frame ${frameNumber + 1}`}
                   className="w-full h-full object-cover"
                 />
               )}

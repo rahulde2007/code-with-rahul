@@ -1,4 +1,3 @@
-import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   GithubIcon,
@@ -6,7 +5,7 @@ import {
   XIcon,
   InstagramIcon,
 } from '../icons/SocialIcons';
-import { siteStatsService } from '../../lib/supabase';
+import { useVisitorCount } from '../../hooks/useVisitorCount';
 
 // Helper to format number into English ordinal (e.g. 1st, 2nd, 3rd, 4th, 11th, 12th, 13th, 21st...)
 export const getOrdinal = (n: number): string => {
@@ -59,19 +58,7 @@ const socialLinks = [
 ];
 
 const Footer = () => {
-  const [visitorCount, setVisitorCount] = useState<number | null>(null);
-  const hasRecordedVisit = useRef(false);
-
-  useEffect(() => {
-    if (hasRecordedVisit.current) return;
-    hasRecordedVisit.current = true;
-
-    siteStatsService.recordVisit().then((count) => {
-      if (typeof count === 'number' && count > 0) {
-        setVisitorCount(count);
-      }
-    });
-  }, []);
+  const { visitorCount } = useVisitorCount();
 
   // Play click audio sound from public/Audio/
   const playClickSound = () => {
@@ -160,9 +147,13 @@ const Footer = () => {
           <p className="text-muted-foreground text-sm font-hanken">
             © 2026 Rahul De. All rights reserved.
           </p>
-          {visitorCount !== null && visitorCount > 0 && (
+          {visitorCount !== null && visitorCount > 0 ? (
             <p className="text-muted-foreground text-sm font-hanken">
               You're the {getOrdinal(visitorCount)} visitor to my website.
+            </p>
+          ) : (
+            <p className="text-muted-foreground text-sm font-hanken">
+              Welcome!
             </p>
           )}
         </div>
