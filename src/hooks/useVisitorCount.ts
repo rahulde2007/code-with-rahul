@@ -6,6 +6,13 @@ const VISITOR_ID_KEY = 'blog_visitor_id';
 let moduleVisitorId: string | null = null;
 let cachedVisitorCount: number | null = null;
 let inFlightVisitPromise: Promise<number | null> | null = null;
+let hasRecordedInSession = false;
+
+function isLocalhost(): boolean {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1';
+}
 
 function generateVisitorId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -47,7 +54,7 @@ function setCookie(name: string, value: string): void {
  * 2. Checks localStorage (reads first; generates and saves if absent)
  * 3. Falls back to cookie if localStorage fails (disabled/blocked)
  * 4. Falls back to in-memory module variable if cookie also fails
- * Does not generate a new ID on repeated calls.
+ * Does not generate a new ID on repeated calls or page refreshes.
  */
 export function getVisitorId(): string {
   if (typeof window === 'undefined') {
@@ -95,8 +102,10 @@ export function getVisitorId(): string {
 }
 
 /**
- * Sends POST /api/visit with visitorId.
- * If POST fails, falls back to GET /api/visit to retrieve visitor count.
+ * Records site visit:
+ * - On localhost / 127.0.0.1: Does NOT send POST /api/visit. Only sends GET /api/visit to show count in Footer.
+ * - On Live / production: Sends POST /api/visit with visitorId once per session.
+ * - If POST fails, falls back to GET /api/visit.
  */
 async function recordVisitOnce(visitorId: string): Promise<number | null> {
   if (cachedVisitorCount !== null) {
@@ -109,6 +118,30 @@ async function recordVisitOnce(visitorId: string): Promise<number | null> {
 
   inFlightVisitPromise = (async () => {
     try {
+      // 1. Localhost check: If running on localhost or 127.0.0.1, do not count visits.
+      // Only perform GET /api/visit to display current visitor count.
+      if (isLocalhost()) {
+        const getResponse = await fetch('/api/visit', { method: 'GET' });
+        if (getResponse.ok) {
+          const getData = await getResponse.json();
+          const count =
+            typeof getData?.visitorCount === 'number'
+              ? getData.visitorCount
+              : Number(getData?.visitorCount);
+          if (!isNaN(count)) {
+            cachedVisitorCount = count;
+            return count;
+          }
+        }
+        return null;
+      }
+
+      // 2. Live environment: Guard against sending POST more than once in the same session
+      if (hasRecordedInSession && cachedVisitorCount !== null) {
+        return cachedVisitorCount;
+      }
+      hasRecordedInSession = true;
+
       // Attempt POST /api/visit with { visitorId }
       const response = await fetch('/api/visit', {
         method: 'POST',
@@ -172,7 +205,7 @@ export function useVisitorCount(): UseVisitorCountReturn {
   const hasExecutedRef = useRef(false);
 
   useEffect(() => {
-    // StrictMode guard: useRef prevents duplicate POST invocation in React StrictMode
+    // StrictMode guard: useRef prevents duplicate invocation in React StrictMode
     if (hasExecutedRef.current) return;
     hasExecutedRef.current = true;
 
