@@ -17,6 +17,8 @@ interface ApiResponse {
   json(body: unknown): void;
 }
 
+const VISITOR_ID_REGEX = /^[a-zA-Z0-9_-]{8,64}$/;
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
 
@@ -41,7 +43,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         .eq('id', 1)
         .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error fetching visitor count in GET /api/visit:', error.message || error);
         return res.status(500).json({ error: error.message || 'Failed to fetch visitor count.' });
       }
@@ -68,10 +70,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(400).json({ error: 'Invalid request body.' });
     }
 
-    const visitorId = typeof body?.visitorId === 'string' ? body.visitorId.trim() : '';
+    const rawVisitorId = body?.visitorId ?? (req as any).body?.visitorId;
+    const visitorId = typeof rawVisitorId === 'string' ? rawVisitorId.trim() : '';
 
-    if (!visitorId) {
-      return res.status(400).json({ error: 'visitorId is required.' });
+    if (!visitorId || !VISITOR_ID_REGEX.test(visitorId)) {
+      return res.status(400).json({ error: 'Valid visitorId is required.' });
     }
 
     try {

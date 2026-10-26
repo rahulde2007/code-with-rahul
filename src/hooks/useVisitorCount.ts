@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { getVisitorId } from '../lib/visitor';
 
-const VISITOR_ID_KEY = 'blog_visitor_id';
+export { getVisitorId };
 
 // Module-level state across renders in the same session
-let moduleVisitorId: string | null = null;
 let cachedVisitorCount: number | null = null;
 let inFlightVisitPromise: Promise<number | null> | null = null;
 let hasRecordedInSession = false;
@@ -12,93 +12,6 @@ function isLocalhost(): boolean {
   if (typeof window === 'undefined') return false;
   const host = window.location.hostname;
   return host === 'localhost' || host === '127.0.0.1';
-}
-
-function generateVisitorId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return 'v-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 11);
-}
-
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  try {
-    const cookies = document.cookie.split(';');
-    for (const cookie of cookies) {
-      const [key, ...rest] = cookie.trim().split('=');
-      if (key === name) {
-        const val = rest.join('=');
-        return val ? decodeURIComponent(val) : null;
-      }
-    }
-  } catch {
-    // ignore cookie read errors
-  }
-  return null;
-}
-
-function setCookie(name: string, value: string): void {
-  if (typeof document === 'undefined') return;
-  try {
-    const oneYearInSeconds = 365 * 24 * 60 * 60;
-    document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${oneYearInSeconds}; path=/; SameSite=Lax`;
-  } catch {
-    // ignore cookie write errors
-  }
-}
-
-/**
- * Resolves persistent anonymous visitor ID:
- * 1. Checks module variable (preserves consistent ID within the same page session)
- * 2. Checks localStorage (reads first; generates and saves if absent)
- * 3. Falls back to cookie if localStorage fails (disabled/blocked)
- * 4. Falls back to in-memory module variable if cookie also fails
- * Does not generate a new ID on repeated calls or page refreshes.
- */
-export function getVisitorId(): string {
-  if (typeof window === 'undefined') {
-    return '';
-  }
-
-  // 1. Same session module variable
-  if (moduleVisitorId) {
-    return moduleVisitorId;
-  }
-
-  let id: string | null = null;
-
-  // 2. Try localStorage first
-  try {
-    id = localStorage.getItem(VISITOR_ID_KEY);
-    if (!id) {
-      const cookieVal = getCookie(VISITOR_ID_KEY);
-      id = cookieVal || generateVisitorId();
-      localStorage.setItem(VISITOR_ID_KEY, id);
-    }
-    setCookie(VISITOR_ID_KEY, id);
-  } catch {
-    // 3. localStorage failed, fallback to cookie
-    try {
-      id = getCookie(VISITOR_ID_KEY);
-      if (!id) {
-        id = generateVisitorId();
-        setCookie(VISITOR_ID_KEY, id);
-      }
-    } catch {
-      // 4. Cookie also failed, fallback to in-memory
-      if (!id) {
-        id = generateVisitorId();
-      }
-    }
-  }
-
-  if (!id) {
-    id = generateVisitorId();
-  }
-
-  moduleVisitorId = id;
-  return id;
 }
 
 /**

@@ -1,6 +1,6 @@
 const VISITOR_ID_KEY = 'blog_visitor_id';
 
-let inMemoryVisitorId: string | null = null;
+let moduleVisitorId: string | null = null;
 
 function generateRandomId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -39,61 +39,67 @@ function setCookie(name: string, value: string): void {
 /**
  * Returns a persistent anonymous visitor ID for this browser.
  * Follows the resolution order:
- * 1. inMemoryVisitorId (preserves consistent ID within the same page session)
- * 2. localStorage (reads first; creates and saves if absent)
- * 3. cookie fallback (1-year expiration with same key name if localStorage is unavailable)
- * 4. module-level in-memory fallback (prevents ID from changing across calls within page load)
+ * 1. Checks module variable (preserves consistent ID within the same page session)
+ * 2. Checks localStorage key "blog_visitor_id" (reads first; creates and saves if absent)
+ * 3. Falls back to cookie "blog_visitor_id" (if localStorage fails or is disabled)
+ * 4. Falls back to in-memory module variable if cookie also fails
+ * Does not generate a new ID on repeated calls or page refreshes.
  */
 export function getVisitorId(): string {
   if (typeof window === 'undefined') {
     return '';
   }
 
-  // 1. If already resolved in memory during this page load, return it immediately
-  if (inMemoryVisitorId) {
-    return inMemoryVisitorId;
+  // 1. Same session module variable
+  if (moduleVisitorId) {
+    return moduleVisitorId;
   }
 
-  let visitorId: string | null = null;
+  let id: string | null = null;
 
   // 2. Try localStorage first
   try {
-    visitorId = localStorage.getItem(VISITOR_ID_KEY);
-    if (!visitorId) {
-      // Check if existing cookie can restore localStorage
-      const cookieVal = getCookie(VISITOR_ID_KEY);
-      if (cookieVal) {
-        visitorId = cookieVal;
-      } else {
-        visitorId = generateRandomId();
-      }
-      localStorage.setItem(VISITOR_ID_KEY, visitorId);
+    const stored = localStorage.getItem(VISITOR_ID_KEY);
+    if (stored && stored.trim().length > 0) {
+      id = stored.trim();
     }
-    // Sync to cookie as fallback backup
-    setCookie(VISITOR_ID_KEY, visitorId);
-  } catch (err) {
-    // localStorage failed (e.g. disabled or SecurityError)
-    console.warn('LocalStorage is not accessible for visitorId, falling back to cookie:', err);
+  } catch {
+    // localStorage read failed (e.g. disabled or restricted)
+  }
+
+  // 3. Fallback to cookie if absent in localStorage
+  if (!id) {
     try {
-      visitorId = getCookie(VISITOR_ID_KEY);
-      if (!visitorId) {
-        visitorId = generateRandomId();
-        setCookie(VISITOR_ID_KEY, visitorId);
+      const cookieVal = getCookie(VISITOR_ID_KEY);
+      if (cookieVal && cookieVal.trim().length > 0) {
+        id = cookieVal.trim();
       }
-    } catch (cookieErr) {
-      console.warn('Cookie is not accessible for visitorId, falling back to in-memory:', cookieErr);
-      if (!visitorId) {
-        visitorId = generateRandomId();
-      }
+    } catch {
+      // cookie read failed
     }
   }
 
-  // 3. Fallback to memory variable if everything failed
-  if (!visitorId) {
-    visitorId = generateRandomId();
+  // 4. Generate once if absent from both
+  if (!id) {
+    id = generateRandomId();
   }
 
-  inMemoryVisitorId = visitorId;
-  return visitorId;
+  // 5. Save to localStorage
+  try {
+    localStorage.setItem(VISITOR_ID_KEY, id);
+  } catch {
+    // localStorage write failed
+  }
+
+  // 6. Save to cookie
+  try {
+    setCookie(VISITOR_ID_KEY, id);
+  } catch {
+    // cookie write failed
+  }
+
+  // 7. Store in module-level variable
+  moduleVisitorId = id;
+  return id;
 }
 
