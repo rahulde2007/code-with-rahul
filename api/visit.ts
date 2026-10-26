@@ -3,7 +3,7 @@ import {
   getClientIp,
   isRateLimited,
   parseRequestBody,
-} from './_utils';
+} from './_utils.js';
 
 interface ApiRequest {
   method?: string;

@@ -4,7 +4,7 @@ import {
   isRateLimited,
   parseRequestBody,
   parseRequestQuery,
-} from './_utils';
+} from './_utils.js';
 
 interface ApiRequest {
   method?: string;

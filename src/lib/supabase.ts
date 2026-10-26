@@ -199,7 +199,7 @@ if (hasValidCredentials) {
   console.info('Using Supabase database mode');
   supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  supabase.from('comments').select('count').limit(1).then(({ error }: { error: any }) => {
+  supabase.from('post_likes').select('post_slug').limit(1).then(({ error }: { error: any }) => {
     if (error) {
       console.error('Supabase connection test failed:', error);
     } else {
