@@ -1,5 +1,6 @@
 export interface Photo {
   id: number;
+  photoId: string;
   title: string;
   description: string;
   location: string;
@@ -20,6 +21,7 @@ export const categories = [
 export const photos: Photo[] = [
   {
     id: 1,
+    photoId: 'photo-1',
     title: 'Spectacled Cobra',
     description:
       "The iconic Indian Spectacled Cobra, displaying its famous hood markings. One of India's 'Big Four' venomous snakes, known for its distinctive spectacle-shaped pattern on the hood.",
@@ -29,6 +31,7 @@ export const photos: Photo[] = [
   },
   {
     id: 2,
+    photoId: 'photo-2',
     title: 'Hooded Cobra',
     description:
       'A magnificent Indian Cobra in full hood display. These snakes can expand their necks by 30% when threatened, creating an impressive defensive posture.',
@@ -38,6 +41,7 @@ export const photos: Photo[] = [
   },
   {
     id: 3,
+    photoId: 'photo-3',
     title: 'Checkered Keelback',
     description:
       'The beautiful Checkered Keelback snake, a non-venomous water snake with distinctive checkerboard pattern. Often found near water bodies and known for their aquatic lifestyle.',
@@ -47,6 +51,7 @@ export const photos: Photo[] = [
   },
   {
     id: 4,
+    photoId: 'photo-4',
     title: 'Indian Peafowl',
     description:
       'A majestic Indian Peafowl displaying its iridescent plumage during courtship. The national bird of India, known for its spectacular tail feather display.',
@@ -56,6 +61,7 @@ export const photos: Photo[] = [
   },
   {
     id: 5,
+    photoId: 'photo-5',
     title: 'Bengal Tiger',
     description:
       'A powerful Bengal Tiger in its natural habitat. The largest cat subspecies, these magnificent predators are apex hunters with distinctive orange and black stripes.',
@@ -65,6 +71,7 @@ export const photos: Photo[] = [
   },
   {
     id: 6,
+    photoId: 'photo-6',
     title: 'Indian Elephant',
     description:
       'An Asian Elephant foraging in the wild. These gentle giants are highly intelligent, with complex social structures and remarkable memory capabilities.',
@@ -74,6 +81,7 @@ export const photos: Photo[] = [
   },
   {
     id: 7,
+    photoId: 'photo-7',
     title: 'Indian Hornbill',
     description:
       'A magnificent Great Hornbill with its characteristic casque and vibrant plumage. These large birds are important seed dispersers in tropical forests.',
@@ -83,6 +91,7 @@ export const photos: Photo[] = [
   },
   {
     id: 8,
+    photoId: 'photo-8',
     title: 'Leopard',
     description:
       'A stealthy Indian Leopard captured in natural light. These elusive big cats are masters of camouflage and solitary hunters of the night.',
@@ -92,6 +101,7 @@ export const photos: Photo[] = [
   },
   {
     id: 9,
+    photoId: 'photo-9',
     title: 'Indian Langur',
     description:
       'A troop of Indian Gray Langurs moving gracefully through the trees. These intelligent primates form complex social groups and are expert climbers.',
@@ -101,6 +111,7 @@ export const photos: Photo[] = [
   },
   {
     id: 10,
+    photoId: 'photo-10',
     title: 'Butterfly Swarm',
     description:
       'A mesmerizing display of butterflies in a seasonal migration. These delicate Nature play crucial roles in pollination and ecosystem health.',
@@ -110,6 +121,7 @@ export const photos: Photo[] = [
   },
   {
     id: 11,
+    photoId: 'photo-11',
     title: 'Rhesus Macaque',
     description:
       'A curious Rhesus Macaque observing its surroundings. These adaptable monkeys are found throughout India and have complex social behaviors.',
@@ -119,6 +131,7 @@ export const photos: Photo[] = [
   },
   {
     id: 12,
+    photoId: 'photo-12',
     title: 'Oriental Magpie Robin',
     description:
       'A striking Oriental Magpie Robin displaying its black and white plumage. Known for their beautiful songs, these birds are common in urban and rural areas.',
@@ -128,6 +141,7 @@ export const photos: Photo[] = [
   },
   {
     id: 13,
+    photoId: 'photo-13',
     title: 'Indian Partridge',
     description:
       'A beautifully patterned Painted Francolin in natural habitat. These ground-dwelling birds are known for their elaborate courtship displays and distinctive calls.',
@@ -137,6 +151,7 @@ export const photos: Photo[] = [
   },
   {
     id: 14,
+    photoId: 'photo-14',
     title: 'Kingfisher',
     description:
       'A vibrant White-throated Kingfisher perched on a branch. These stunning birds are expert fishermen with brilliant blue and orange plumage.',
@@ -146,6 +161,7 @@ export const photos: Photo[] = [
   },
   {
     id: 15,
+    photoId: 'photo-15',
     title: 'Indian Mongoose',
     description:
       'A sleek Indian Gray Mongoose showing its agility. These clever Butterfly are known for their immunity to snake venom and fearless nature.',
@@ -155,6 +171,7 @@ export const photos: Photo[] = [
   },
   {
     id: 16,
+    photoId: 'photo-16',
     title: 'Common Myna',
     description:
       'A charismatic Common Myna with its distinctive yellow eye patches. These intelligent birds are highly adaptable and known for their mimicry skills.',
@@ -164,6 +181,7 @@ export const photos: Photo[] = [
   },
   {
     id: 17,
+    photoId: 'photo-17',
     title: 'Indian Monitor Lizard',
     description:
       'A large Indian Monitor Lizard basking in the sun. These impressive reptiles can grow up to 6 feet and are skilled climbers and swimmers.',
@@ -173,6 +191,7 @@ export const photos: Photo[] = [
   },
   {
     id: 18,
+    photoId: 'photo-18',
     title: 'Indian Hare',
     description:
       'An alert Indian Hare in its natural environment. These swift runners have excellent hearing and can reach speeds up to 70 km/h when escaping predators.',
@@ -182,6 +201,7 @@ export const photos: Photo[] = [
   },
   {
     id: 19,
+    photoId: 'photo-19',
     title: 'Rose-ringed Parakeet',
     description:
       'A colorful Rose-ringed Parakeet feeding on fruits. These social birds are known for their vibrant green plumage and distinctive rose-colored neck rings.',
@@ -191,6 +211,7 @@ export const photos: Photo[] = [
   },
   {
     id: 20,
+    photoId: 'photo-20',
     title: 'Nilgai',
     description:
       'The largest antelope in Asia, the Nilgai. These majestic herbivores are known for their distinctive bluish-gray coat and can weigh up to 300 kg.',
@@ -200,6 +221,7 @@ export const photos: Photo[] = [
   },
   {
     id: 21,
+    photoId: 'photo-21',
     title: 'Indian Star Tortoise',
     description:
       'A beautifully patterned Indian Star Tortoise with its characteristic star-like markings. These terrestrial reptiles are known for their longevity and can live up to 80 years.',
@@ -209,6 +231,7 @@ export const photos: Photo[] = [
   },
   {
     id: 26,
+    photoId: 'photo-26',
     title: 'Indian Skimmer',
     description:
       "The rare Indian Skimmer with its distinctive bill. These unique birds 'skim' the water surface to catch fish and are critically endangered in India.",
@@ -218,6 +241,7 @@ export const photos: Photo[] = [
   },
   {
     id: 22,
+    photoId: 'photo-22',
     title: 'Jungle Babbler',
     description:
       'A family of Jungle Babblers foraging together. These social birds live in groups and are known for their cooperative breeding and distinctive calls.',
@@ -227,6 +251,7 @@ export const photos: Photo[] = [
   },
   {
     id: 23,
+    photoId: 'photo-23',
     title: 'Honey Bee Colony',
     description:
       "A thriving honey bee colony showcasing nature's engineering marvel. These industrious Nature play crucial roles in pollination and honey production.",
@@ -236,6 +261,7 @@ export const photos: Photo[] = [
   },
   {
     id: 24,
+    photoId: 'photo-24',
     title: 'Indian Fox',
     description:
       'An elusive Indian Fox captured in natural light. These desert-adapted canines are nocturnal hunters with exceptional hearing and keen senses.',
@@ -245,6 +271,7 @@ export const photos: Photo[] = [
   },
   {
     id: 25,
+    photoId: 'photo-25',
     title: 'Indian Skimmer',
     description:
       "The rare Indian Skimmer with its distinctive bill. These unique birds 'skim' the water surface to catch fish and are critically endangered in India.",
@@ -252,5 +279,4 @@ export const photos: Photo[] = [
     image: '/photo/photo25.jpg',
     category: 'Nature',
   },
-
 ];

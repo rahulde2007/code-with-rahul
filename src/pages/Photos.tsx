@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { photos, categories } from '../data/photos';
-import { commentService } from '../lib/supabase';
+import { usePhotoLikes } from '../hooks/usePhotoLikes';
 import ScrollReveal from '../components/ui/ScrollReveal';
 import SlideshowControls from '../components/ui/SlideshowControls';
 import CategorySelector from '../components/ui/CategorySelector';
@@ -30,10 +30,13 @@ const Photos = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
-    const [photoLoveCounts, setPhotoLoveCounts] = useState<Record<number, number>>({});
-    const [userLovedPhotos, setUserLovedPhotos] = useState<Set<number>>(new Set());
-    const [lovingPhoto, setLovingPhoto] = useState(false);
-    const [showHeart, setShowHeart] = useState<Record<number, boolean>>({});
+    const {
+        photoLoveCounts,
+        userLovedPhotos,
+        lovingPhoto,
+        handleLovePhoto,
+    } = usePhotoLikes();
+    const [showHeart, setShowHeart] = useState<Record<string, boolean>>({});
     const [isPlaying, setIsPlaying] = useState(true);
 
     // Play click audio sound from public/Audio/
@@ -50,8 +53,6 @@ const Photos = () => {
 
     // Custom double tap detection for mobile
     const [lastTap, setLastTap] = useState<number>(0);
-
-    const userId = 'photos-user-' + Math.random().toString(36).substr(2, 9);
 
     const filteredPhotos =
         selectedCategory === 'All'
@@ -176,49 +177,7 @@ const Photos = () => {
         }
     };
 
-    // Load photo love data from Supabase and localStorage on component mount
-    useEffect(() => {
-        const loadPhotoLoveData = async () => {
-            // Load user love history from localStorage immediately
-            const loadUserLoveHistory = () => {
-                const loved = JSON.parse(localStorage.getItem('lovedPhotos') || '[]');
-                setUserLovedPhotos(new Set(loved));
-            };
-
-            // Initialize all photo love counts to 0
-            const loveCounts: Record<number, number> = {};
-            photos.forEach(photo => {
-                loveCounts[photo.id] = 0;
-            });
-
-            // Load all love counts from Supabase in a single call
-            try {
-                const allCounts = await commentService.getAllPhotoLovesCounts();
-                // Merge the Supabase counts with the initialized counts
-                Object.keys(allCounts).forEach(photoId => {
-                    loveCounts[Number(photoId)] = allCounts[Number(photoId)];
-                });
-            } catch (error) {
-                console.warn('Supabase not available for photo love counts:', error);
-                // Keep the default 0 counts
-            }
-
-            setPhotoLoveCounts(loveCounts);
-            loadUserLoveHistory();
-        };
-
-        loadPhotoLoveData();
-    }, []);
-
-    const saveUserPhotoLove = (photoId: number) => {
-        const existing = JSON.parse(localStorage.getItem('lovedPhotos') || '[]');
-        if (!existing.includes(photoId)) {
-            existing.push(photoId);
-            localStorage.setItem('lovedPhotos', JSON.stringify(existing));
-        }
-    };
-
-    const handleLoveClick = async (photoId: number, e?: React.MouseEvent) => {
+    const handleLoveClick = async (photoId: string, e?: React.MouseEvent) => {
         if (e) e.stopPropagation(); // Prevent triggering carousel navigation
 
         // Trigger big heart animation regardless of whether already loved
@@ -227,22 +186,7 @@ const Photos = () => {
             setShowHeart(prev => ({ ...prev, [photoId]: false }));
         }, 1000);
 
-        if (userLovedPhotos.has(photoId) || lovingPhoto) return;
-
-        try {
-            setLovingPhoto(true);
-            await commentService.lovePhoto(photoId, userId);
-            saveUserPhotoLove(photoId);
-            setPhotoLoveCounts(prev => ({
-                ...prev,
-                [photoId]: (prev[photoId] || 0) + 1
-            }));
-            setUserLovedPhotos(prev => new Set(prev).add(photoId));
-        } catch (error) {
-            console.error('Error adding photo love:', error);
-        } finally {
-            setLovingPhoto(false);
-        }
+        await handleLovePhoto(photoId);
     };
 
     return (
@@ -351,7 +295,7 @@ const Photos = () => {
                                     >
                                         <div
                                             className="relative overflow-hidden rounded-3xl shadow-2xl shadow-black/40 h-full w-full cursor-pointer"
-                                            onDoubleClick={() => isCenter && handleLoveClick(photo.id)}
+                                            onDoubleClick={() => isCenter && handleLoveClick(photo.photoId)}
                                             onClick={() => {
                                                 // Handle tapping on side cards to navigate to them (often expected when swiping is requested)
                                                 if (isNearSide) {
@@ -373,7 +317,7 @@ const Photos = () => {
                                                 const now = Date.now();
                                                 const DOUBLE_PRESS_DELAY = 300;
                                                 if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
-                                                    handleLoveClick(photo.id);
+                                                    handleLoveClick(photo.photoId);
                                                     setLastTap(0);
                                                 } else {
                                                     setLastTap(now);
@@ -396,14 +340,14 @@ const Photos = () => {
 
                                             {/* Large Animated Heart */}
                                             <AnimatePresence>
-                                                {showHeart[photo.id] && (
+                                                {showHeart[photo.photoId] && (
                                                     <motion.div
                                                         initial={{ opacity: 0, scale: 0, x: "-50%", y: "-50%" }}
                                                         animate={{
-                                                            opacity: [0, 1, 1, 0],
-                                                            scale: [0, 1.2, 1, 1.5],
-                                                            x: "-50%",
-                                                            y: "-50%"
+                                                             opacity: [0, 1, 1, 0],
+                                                             scale: [0, 1.2, 1, 1.5],
+                                                             x: "-50%",
+                                                             y: "-50%"
                                                         }}
                                                         exit={{ opacity: 0, scale: 2, x: "-50%", y: "-50%" }}
                                                         transition={{ duration: 0.8, ease: "easeOut" }}
@@ -428,23 +372,23 @@ const Photos = () => {
                                             {/* Love Icon - positioned after overlays to ensure it's clickable */}
                                             <motion.button
                                                 whileTap={{ scale: 0.8 }}
-                                                onClick={(e) => handleLoveClick(photo.id, e)}
+                                                onClick={(e) => handleLoveClick(photo.photoId, e)}
                                                 onTouchStart={(e) => e.stopPropagation()}
                                                 onTouchMove={(e) => e.stopPropagation()}
                                                 onTouchEnd={(e) => e.stopPropagation()}
                                                 onMouseDown={(e) => e.stopPropagation()}
                                                 onMouseMove={(e) => e.stopPropagation()}
                                                 onMouseUp={(e) => e.stopPropagation()}
-                                                disabled={userLovedPhotos.has(photo.id) || lovingPhoto}
-                                                className={`absolute top-3 left-3 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm transition-colors duration-200 group flex items-center gap-1 ${userLovedPhotos.has(photo.id)
+                                                disabled={userLovedPhotos.has(photo.photoId) || lovingPhoto}
+                                                className={`absolute top-3 left-3 z-20 p-2 rounded-full bg-black/20 backdrop-blur-sm transition-colors duration-200 group flex items-center gap-1 ${userLovedPhotos.has(photo.photoId)
                                                     ? 'cursor-default'
                                                     : 'hover:bg-black/40 cursor-pointer'
                                                     }`}
-                                                aria-label={userLovedPhotos.has(photo.id) ? "Already loved" : "Add to favorites"}
+                                                aria-label={userLovedPhotos.has(photo.photoId) ? "Already loved" : "Add to favorites"}
                                             >
                                                 <div className="relative">
                                                     <AnimatePresence>
-                                                        {userLovedPhotos.has(photo.id) && (
+                                                        {userLovedPhotos.has(photo.photoId) && (
                                                             <motion.div
                                                                 initial={{ scale: 0, opacity: 0 }}
                                                                 animate={{ scale: 1.5, opacity: 0 }}
@@ -459,8 +403,8 @@ const Photos = () => {
                                                     <motion.div
                                                         initial={false}
                                                         animate={{
-                                                            scale: userLovedPhotos.has(photo.id) ? [1, 1.4, 1] : 1,
-                                                            color: userLovedPhotos.has(photo.id) ? "#ef4444" : "rgba(255, 255, 255, 0.7)"
+                                                            scale: userLovedPhotos.has(photo.photoId) ? [1, 1.4, 1] : 1,
+                                                            color: userLovedPhotos.has(photo.photoId) ? "#ef4444" : "rgba(255, 255, 255, 0.7)"
                                                         }}
                                                         transition={{
                                                             duration: 0.4,
@@ -468,18 +412,18 @@ const Photos = () => {
                                                         }}
                                                     >
                                                         <Heart
-                                                            className={`w-5 h-5 ${userLovedPhotos.has(photo.id)
+                                                            className={`w-5 h-5 ${userLovedPhotos.has(photo.photoId)
                                                                 ? 'fill-red-500 drop-shadow-lg'
                                                                 : 'group-hover:text-white'
                                                                 }`}
                                                         />
                                                     </motion.div>
                                                 </div>
-                                                <span className={`text-xs font-medium transition-all duration-200 ${userLovedPhotos.has(photo.id)
+                                                <span className={`text-xs font-medium transition-all duration-200 ${userLovedPhotos.has(photo.photoId)
                                                     ? 'text-white/70'
                                                     : 'text-white/70 group-hover:text-white'
                                                     }`}>
-                                                    {photoLoveCounts[photo.id] || 0}
+                                                    {photoLoveCounts[photo.photoId] ?? 0}
                                                 </span>
                                             </motion.button>
                                         </div>
