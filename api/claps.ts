@@ -43,7 +43,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   try {
     supabase = getAdminSupabase();
   } catch (err: any) {
-    console.error('Supabase initialization error in claps API:', err.message);
+    console.error('Supabase initialization error in claps API:', err?.message || err);
     return res.status(500).json({ error: 'Database service configuration error.' });
   }
 
@@ -75,94 +75,97 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       ]);
 
       if (clapResult.error) {
-        // If table doesn't exist yet, return 0 gracefully
-        if (
-          clapResult.error.message?.includes('relation "public.post_claps" does not exist') ||
-          clapResult.error.code === '42P01'
-        ) {
-          return res.status(200).json({ clap_count: 0, hasClapped: false });
-        }
-        console.error('Error fetching post claps:', clapResult.error);
+        console.error('Error fetching post claps in GET /api/claps:', clapResult.error);
         return res.status(500).json({ error: 'Failed to fetch clap count.' });
       }
 
-      const clapCount = clapResult.data?.clap_count ?? 0;
-      const hasClapped = Boolean(visitorResult.data);
+      if (visitorResult.error) {
+        console.error('Error checking visitor clap status in GET /api/claps:', visitorResult.error);
+      }
+
+      const rawCount = clapResult.data?.clap_count;
+      const count = typeof rawCount === 'number' ? rawCount : Number(rawCount) || 0;
+      const hasClapped = Boolean(visitorResult.data?.visitor_id);
 
       return res.status(200).json({
-        clap_count: typeof clapCount === 'number' ? clapCount : Number(clapCount) || 0,
+        clapCount: count,
+        clap_count: count,
         hasClapped,
       });
     } catch (error: any) {
-      console.error('Unexpected error in GET /api/claps:', error);
-      return res.status(500).json({ error: 'Internal server error.' });
+      console.error('Unexpected error in GET /api/claps:', error?.message || error);
+      return res.status(500).json({ error: error?.message || 'Internal server error.' });
     }
   }
 
   // Handle POST request: record clap and increment count atomically
   if (req.method === 'POST') {
-    const body = await parseRequestBody(req);
-    const slug = typeof body?.slug === 'string' ? body.slug.trim() : '';
-    const visitorId = typeof body?.visitorId === 'string' ? body.visitorId.trim() : '';
-
-    if (!slug || !SLUG_REGEX.test(slug)) {
-      return res.status(400).json({ error: 'Invalid or missing slug.' });
-    }
-
-    if (!visitorId || !VISITOR_ID_REGEX.test(visitorId)) {
-      return res.status(400).json({ error: 'Invalid or missing visitorId.' });
-    }
-
     try {
-      // 1. First attempt: call Postgres RPC `increment_clap` if defined
-      const { data: rpcData, error: rpcError } = await supabase.rpc('increment_clap', {
-        slug_input: slug,
-        visitor_id_input: visitorId,
-      });
+      const body = await parseRequestBody(req);
+      const rawSlug = body.slug ?? (req as any).body?.slug;
+      const slug = typeof rawSlug === 'string' ? rawSlug.trim() : '';
 
-      if (!rpcError && rpcData) {
-        const parsed = typeof rpcData === 'string' ? JSON.parse(rpcData) : rpcData;
-        return res.status(200).json({
-          success: true,
-          alreadyClapped: Boolean(parsed.alreadyClapped),
-          clap_count: Number(parsed.clap_count) || 0,
-        });
+      const rawVisitorId = body.visitorId ?? (req as any).body?.visitorId;
+      const visitorId = typeof rawVisitorId === 'string' ? rawVisitorId.trim() : '';
+
+      if (!slug || !SLUG_REGEX.test(slug)) {
+        return res.status(400).json({ error: 'Valid post slug is required.' });
       }
 
-      // 2. Fallback if RPC is not installed: Atomic composite PK insertion followed by increment
-      // Primary key on post_clap_visitors is (post_slug, visitor_id)
+      if (!visitorId || !VISITOR_ID_REGEX.test(visitorId)) {
+        return res.status(400).json({ error: 'Valid visitorId is required.' });
+      }
+
+      // Try inserting into post_clap_visitors (primary key (post_slug, visitor_id))
       const { error: insertError } = await supabase
         .from('post_clap_visitors')
         .insert({ post_slug: slug, visitor_id: visitorId });
 
       if (insertError) {
-        // Code 23505 is PostgreSQL unique constraint violation
+        // Code 23505 is PostgreSQL unique constraint violation: already clapped!
         if (insertError.code === '23505') {
-          const { data: currentData } = await supabase
+          const { data: currentData, error: readError } = await supabase
             .from('post_claps')
             .select('clap_count')
             .eq('post_slug', slug)
             .maybeSingle();
 
+          if (readError && readError.code !== 'PGRST116') {
+            console.error('Error reading post_claps after duplicate insert:', readError);
+          }
+
+          const rawCount = currentData?.clap_count;
+          const count = typeof rawCount === 'number' ? rawCount : Number(rawCount) || 0;
+
           return res.status(200).json({
             success: true,
             alreadyClapped: true,
-            clap_count: currentData?.clap_count ?? 0,
+            clapCount: count,
+            clap_count: count,
           });
         }
 
-        console.error('Error inserting into post_clap_visitors:', insertError);
-        return res.status(500).json({ error: 'Failed to record clap.' });
+        console.error('Error inserting into post_clap_visitors in POST /api/claps:', insertError);
+        return res.status(500).json({ error: insertError.message || 'Failed to record clap.' });
       }
 
       // New visitor clap recorded! Increment post_claps.clap_count
-      const { data: existingClap } = await supabase
+      const { data: existingClap, error: fetchError } = await supabase
         .from('post_claps')
         .select('clap_count')
         .eq('post_slug', slug)
         .maybeSingle();
 
-      const nextCount = (existingClap?.clap_count ?? 0) + 1;
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error reading post_claps in POST /api/claps:', fetchError);
+        return res.status(500).json({ error: fetchError.message || 'Failed to read clap count.' });
+      }
+
+      const currentCount = typeof existingClap?.clap_count === 'number'
+        ? existingClap.clap_count
+        : Number(existingClap?.clap_count) || 0;
+
+      const nextCount = currentCount + 1;
 
       const { data: updatedClap, error: updateError } = await supabase
         .from('post_claps')
@@ -174,21 +177,23 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         .single();
 
       if (updateError) {
-        console.error('Error updating post_claps:', updateError);
-        return res.status(500).json({ error: 'Failed to update clap count.' });
+        console.error('Error updating post_claps in POST /api/claps:', updateError);
+        return res.status(500).json({ error: updateError.message || 'Failed to update clap count.' });
       }
 
+      const finalCount = updatedClap?.clap_count ?? nextCount;
       return res.status(200).json({
         success: true,
         alreadyClapped: false,
-        clap_count: updatedClap?.clap_count ?? nextCount,
+        clapCount: finalCount,
+        clap_count: finalCount,
       });
     } catch (error: any) {
-      console.error('Unexpected error in POST /api/claps:', error);
-      return res.status(500).json({ error: 'Internal server error.' });
+      console.error('Unexpected error in POST /api/claps:', error?.message || error);
+      return res.status(500).json({ error: error?.message || 'Internal server error.' });
     }
   }
 
-  res.setHeader('Allow', 'GET, POST');
+  res.setHeader('Allow', 'GET, POST, OPTIONS');
   return res.status(405).json({ error: 'Method Not Allowed' });
 }

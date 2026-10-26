@@ -1,46 +1,37 @@
 import { useState, useEffect, useRef } from 'react';
-import { commentService, isSupabaseConfigured, supabase } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { getVisitorId } from '../lib/visitor';
 
 interface UseBlogReactionsReturn {
-  // State
-  blogLoves: number;
+  blogLoves: number | null;
   userHasLoved: boolean;
   lovingBlog: boolean;
-  blogLikes: number;
+  blogLikes: number | null;
   userHasLiked: boolean;
   likingBlog: boolean;
   blogReactionsError: string | null;
-
-  // Functions
   handleBlogLove: () => Promise<void>;
   handleBlogLike: () => Promise<void>;
 }
 
-export const useBlogReactions = (slug: string | undefined): UseBlogReactionsReturn => {
-  const [blogLoves, setBlogLoves] = useState(0);
-  const [userHasLoved, setUserHasLoved] = useState(false);
-  const [lovingBlog, setLovingBlog] = useState(false);
+function isLocalhost(): boolean {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1';
+}
 
-  const [blogLikes, setBlogLikes] = useState(0);
-  const [userHasLiked, setUserHasLiked] = useState(false);
-  const [likingBlog, setLikingBlog] = useState(false);
+export const useBlogReactions = (slug: string | undefined): UseBlogReactionsReturn => {
+  const [blogLoves, setBlogLoves] = useState<number | null>(null);
+  const [userHasLoved, setUserHasLoved] = useState<boolean>(false);
+  const [lovingBlog, setLovingBlog] = useState<boolean>(false);
+
+  const [blogLikes, setBlogLikes] = useState<number | null>(null);
+  const [userHasLiked, setUserHasLiked] = useState<boolean>(false);
+  const [likingBlog, setLikingBlog] = useState<boolean>(false);
 
   const [blogReactionsError, setBlogReactionsError] = useState<string | null>(null);
 
-  const userId = useRef('blog-user-' + Math.random().toString(36).slice(2, 11)).current;
-
-  const loadUserReactionHistory = () => {
-    if (!slug) return;
-    try {
-      const loved = JSON.parse(localStorage.getItem('lovedBlogs') || '[]');
-      const liked = JSON.parse(localStorage.getItem('likedBlogs') || '[]');
-      setUserHasLoved(Array.isArray(loved) && loved.includes(slug));
-      setUserHasLiked(Array.isArray(liked) && liked.includes(slug));
-    } catch (error) {
-      console.warn('Unable to load saved blog reactions:', error);
-    }
-  };
+  const hasFetchedRef = useRef<string | null>(null);
 
   const saveUserReaction = (type: 'love' | 'like') => {
     if (!slug) return;
@@ -59,38 +50,38 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
 
   const loadBlogReactions = async () => {
     if (!slug) return;
-    loadUserReactionHistory();
 
     const visitorId = getVisitorId();
 
     try {
-      // 1. Fetch real like count and visitor like status from /api/likes
-      const likesPromise = fetch(
+      const res = await fetch(
         `/api/likes?slug=${encodeURIComponent(slug)}&visitorId=${encodeURIComponent(visitorId)}`
-      )
-        .then(async (res) => {
-          if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-          return res.json();
-        })
-        .then((data) => {
-          if (typeof data.like_count === 'number') {
-            setBlogLoves(data.like_count);
-          }
-          if (data.hasLiked) {
-            setUserHasLoved(true);
-            saveUserReaction('love');
-          }
-        });
+      );
 
-      // 2. Fetch claps count
-      const clapsPromise = commentService
-        .getBlogLikesCount(slug)
-        .then((count) => setBlogLikes(count))
-        .catch((err) => console.warn('Unable to load blog claps:', err));
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status}`);
+      }
 
-      await Promise.allSettled([likesPromise, clapsPromise]);
+      const data = await res.json();
+
+      const count =
+        typeof data.likeCount === 'number'
+          ? data.likeCount
+          : (typeof data.like_count === 'number' ? data.like_count : 0);
+
+      setBlogLoves(count);
+
+      // Server is the single source of truth for like state
+      if (data.hasLiked === true) {
+        setUserHasLoved(true);
+        saveUserReaction('love');
+      } else {
+        setUserHasLoved(false);
+      }
     } catch (error) {
       console.warn('Unable to load blog reactions:', error);
+      // Fallback: If network failed, set 0 if still null so UI doesn't hang
+      setBlogLoves((prev) => (prev === null ? 0 : prev));
     }
   };
 
@@ -98,17 +89,23 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
     if (!slug || userHasLoved || lovingBlog) return;
 
     const previousCount = blogLoves;
-    const visitorId = getVisitorId();
+    const previousHasLoved = userHasLoved;
 
+    // 1. Optimistic update
+    setUserHasLoved(true);
+    setBlogLoves((prev) => (typeof prev === 'number' ? prev + 1 : 1));
     setLovingBlog(true);
-    try {
-      // 1. Optimistic update
-      setUserHasLoved(true);
-      setBlogLoves((prev) => prev + 1);
-      saveUserReaction('love');
-      setBlogReactionsError(null);
+    setBlogReactionsError(null);
 
-      // 2. Persist like via serverless function
+    // 2. Localhost guard: do not send POST to avoid altering live database counts
+    if (isLocalhost()) {
+      setLovingBlog(false);
+      return;
+    }
+
+    // 3. Live production: persist like via POST /api/likes
+    try {
+      const visitorId = getVisitorId();
       const response = await fetch('/api/likes', {
         method: 'POST',
         headers: {
@@ -122,17 +119,21 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
       }
 
       const result = await response.json();
-      if (typeof result.like_count === 'number') {
-        setBlogLoves(result.like_count);
+      const count =
+        typeof result.likeCount === 'number'
+          ? result.likeCount
+          : (typeof result.like_count === 'number' ? result.like_count : null);
+
+      if (count !== null) {
+        setBlogLoves(count);
       }
-      if (result.alreadyLiked) {
-        setUserHasLoved(true);
-      }
+      setUserHasLoved(true);
+      saveUserReaction('love');
     } catch (error) {
       console.error('Failed to save blog like:', error);
       // Rollback optimistic update
       setBlogLoves(previousCount);
-      setUserHasLoved(false);
+      setUserHasLoved(previousHasLoved);
       setBlogReactionsError('Failed to record like. Please try again.');
     } finally {
       setLovingBlog(false);
@@ -141,22 +142,14 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
 
   const handleBlogLike = async () => {
     if (!slug || userHasLiked || likingBlog) return;
-    try {
-      setLikingBlog(true);
-      await commentService.likeBlogPost(slug, userId);
-      saveUserReaction('like');
-      setBlogLikes((p) => p + 1);
-      setUserHasLiked(true);
-      setBlogReactionsError(null);
-    } catch (error) {
-      console.error('Failed to save blog clap:', error);
-      setBlogReactionsError('Failed to clap for the post.');
-    } finally {
-      setLikingBlog(false);
-    }
+    setLikingBlog(true);
+    setUserHasLiked(true);
+    setBlogLikes((prev) => (typeof prev === 'number' ? prev + 1 : 1));
+    saveUserReaction('like');
+    setLikingBlog(false);
   };
 
-  // Real-time updates effect
+  // Real-time updates effect (if Supabase is configured)
   useEffect(() => {
     if (!slug || !isSupabaseConfigured) return;
 
@@ -166,19 +159,13 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
       try {
         const removal = supabase.removeChannel(channel);
         if (removal && typeof removal.catch === 'function') {
-          removal.catch((error: unknown) => {
-            console.error('Unable to clean up blog reaction subscription:', error);
-          });
+          removal.catch(() => {});
         }
-      } catch (error) {
-        console.error('Unable to clean up blog reaction subscription:', error);
-      }
+      } catch {}
     };
 
     try {
-      channel = supabase.channel(`blog-reactions-${slug}`);
-
-      // Listen to post_likes real-time changes
+      channel = supabase.channel(`blog-likes-${slug}`);
       channel.on(
         'postgres_changes',
         {
@@ -189,22 +176,8 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
         },
         () => void loadBlogReactions()
       );
-
-      // Listen to blog_likes (claps)
-      channel.on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'blog_likes',
-          filter: `blog_slug=eq.${slug}`,
-        },
-        () => void loadBlogReactions()
-      );
-
       channel.subscribe();
-    } catch (error) {
-      console.error('Unable to subscribe to blog reactions:', error);
+    } catch {
       removeChannel();
       return;
     }
@@ -212,11 +185,13 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
     return removeChannel;
   }, [slug]);
 
-  // Load reactions on mount
+  // Load reactions on mount with StrictMode ref guard
   useEffect(() => {
-    if (slug) {
-      loadBlogReactions();
-    }
+    if (!slug) return;
+    if (hasFetchedRef.current === slug) return;
+    hasFetchedRef.current = slug;
+
+    loadBlogReactions();
   }, [slug]);
 
   return {
@@ -231,4 +206,3 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
     handleBlogLike,
   };
 };
-

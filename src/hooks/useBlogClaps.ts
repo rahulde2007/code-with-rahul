@@ -1,30 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getVisitorId } from '../lib/visitor';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 interface UseBlogClapsReturn {
-  blogClaps: number;
+  blogClaps: number | null;
   userHasClapped: boolean;
   clappingBlog: boolean;
   blogClapsError: string | null;
   handleBlogClap: () => Promise<void>;
 }
 
+function isLocalhost(): boolean {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
 export const useBlogClaps = (slug: string | undefined): UseBlogClapsReturn => {
-  const [blogClaps, setBlogClaps] = useState(0);
-  const [userHasClapped, setUserHasClapped] = useState(false);
-  const [clappingBlog, setClappingBlog] = useState(false);
+  const [blogClaps, setBlogClaps] = useState<number | null>(null);
+  const [userHasClapped, setUserHasClapped] = useState<boolean>(false);
+  const [clappingBlog, setClappingBlog] = useState<boolean>(false);
   const [blogClapsError, setBlogClapsError] = useState<string | null>(null);
 
-  const loadUserClapHistory = () => {
-    if (!slug) return;
-    try {
-      const clapped = JSON.parse(localStorage.getItem('clappedBlogs') || '[]');
-      setUserHasClapped(Array.isArray(clapped) && clapped.includes(slug));
-    } catch (error) {
-      console.warn('Unable to load saved blog claps:', error);
-    }
-  };
+  const hasFetchedRef = useRef<string | null>(null);
 
   const saveUserClap = () => {
     if (!slug) return;
@@ -41,7 +39,6 @@ export const useBlogClaps = (slug: string | undefined): UseBlogClapsReturn => {
 
   const loadBlogClaps = async () => {
     if (!slug) return;
-    loadUserClapHistory();
 
     const visitorId = getVisitorId();
 
@@ -49,18 +46,31 @@ export const useBlogClaps = (slug: string | undefined): UseBlogClapsReturn => {
       const res = await fetch(
         `/api/claps?slug=${encodeURIComponent(slug)}&visitorId=${encodeURIComponent(visitorId)}`
       );
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status}`);
+      }
+
       const data = await res.json();
 
-      if (typeof data.clap_count === 'number') {
-        setBlogClaps(data.clap_count);
-      }
-      if (data.hasClapped) {
+      const count =
+        typeof data.clapCount === 'number'
+          ? data.clapCount
+          : (typeof data.clap_count === 'number' ? data.clap_count : 0);
+
+      setBlogClaps(count);
+
+      // Server is the single source of truth for clap state
+      if (data.hasClapped === true) {
         setUserHasClapped(true);
         saveUserClap();
+      } else {
+        setUserHasClapped(false);
       }
     } catch (error) {
       console.warn('Unable to load blog claps count:', error);
+      // Fallback: If network failed, set 0 if still null so UI doesn't hang
+      setBlogClaps((prev) => (prev === null ? 0 : prev));
     }
   };
 
@@ -68,17 +78,23 @@ export const useBlogClaps = (slug: string | undefined): UseBlogClapsReturn => {
     if (!slug || userHasClapped || clappingBlog) return;
 
     const previousCount = blogClaps;
-    const visitorId = getVisitorId();
+    const previousHasClapped = userHasClapped;
 
+    // 1. Optimistic update
+    setUserHasClapped(true);
+    setBlogClaps((prev) => (typeof prev === 'number' ? prev + 1 : 1));
     setClappingBlog(true);
-    try {
-      // 1. Optimistic update
-      setUserHasClapped(true);
-      setBlogClaps((prev) => prev + 1);
-      saveUserClap();
-      setBlogClapsError(null);
+    setBlogClapsError(null);
 
-      // 2. Persist clap via serverless function
+    // 2. Localhost guard: do not send POST to avoid altering live database counts
+    if (isLocalhost()) {
+      setClappingBlog(false);
+      return;
+    }
+
+    // 3. Live production: persist clap via POST /api/claps
+    try {
+      const visitorId = getVisitorId();
       const response = await fetch('/api/claps', {
         method: 'POST',
         headers: {
@@ -92,17 +108,21 @@ export const useBlogClaps = (slug: string | undefined): UseBlogClapsReturn => {
       }
 
       const result = await response.json();
-      if (typeof result.clap_count === 'number') {
-        setBlogClaps(result.clap_count);
+      const count =
+        typeof result.clapCount === 'number'
+          ? result.clapCount
+          : (typeof result.clap_count === 'number' ? result.clap_count : null);
+
+      if (count !== null) {
+        setBlogClaps(count);
       }
-      if (result.alreadyClapped) {
-        setUserHasClapped(true);
-      }
+      setUserHasClapped(true);
+      saveUserClap();
     } catch (error) {
       console.error('Failed to save blog clap:', error);
       // Rollback optimistic update
       setBlogClaps(previousCount);
-      setUserHasClapped(false);
+      setUserHasClapped(previousHasClapped);
       setBlogClapsError('Failed to record clap. Please try again.');
     } finally {
       setClappingBlog(false);
@@ -145,11 +165,13 @@ export const useBlogClaps = (slug: string | undefined): UseBlogClapsReturn => {
     return removeChannel;
   }, [slug]);
 
-  // Load claps on mount
+  // Load claps on mount with StrictMode ref guard
   useEffect(() => {
-    if (slug) {
-      loadBlogClaps();
-    }
+    if (!slug) return;
+    if (hasFetchedRef.current === slug) return;
+    hasFetchedRef.current = slug;
+
+    loadBlogClaps();
   }, [slug]);
 
   return {

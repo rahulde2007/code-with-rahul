@@ -3,9 +3,9 @@ import { Heart } from 'lucide-react';
 import { ClappingHandsIcon } from '../icons/SocialIcons';
 
 interface BlogReactionsProps {
-  blogLoves: number;
-  blogClaps?: number;
-  blogLikes?: number;
+  blogLoves: number | null;
+  blogClaps?: number | null;
+  blogLikes?: number | null;
   userHasLoved: boolean;
   userHasClapped?: boolean;
   userHasLiked?: boolean;
@@ -33,7 +33,7 @@ export const BlogReactions: React.FC<BlogReactionsProps> = ({
   onLike,
   onShare,
 }) => {
-  const clapsCount = typeof blogClaps === 'number' ? blogClaps : (blogLikes ?? 0);
+  const clapsCount = typeof blogClaps === 'number' ? blogClaps : (typeof blogLikes === 'number' ? blogLikes : null);
   const isClapped = Boolean(userHasClapped ?? userHasLiked);
   const isClapLoading = Boolean(clappingBlog ?? likingBlog);
   const handleClap = onClap || onLike || (() => {});
@@ -44,7 +44,7 @@ export const BlogReactions: React.FC<BlogReactionsProps> = ({
       <button
         type="button"
         onClick={onLove}
-        disabled={userHasLoved || lovingBlog}
+        disabled={userHasLoved || lovingBlog || blogLoves === null}
         className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default touch-manipulation ${
           userHasLoved
             ? 'bg-red-500/15 border-transparent text-red-500'
@@ -57,14 +57,14 @@ export const BlogReactions: React.FC<BlogReactionsProps> = ({
             userHasLoved ? 'fill-red-600 text-red-500' : 'fill-none'
           }`}
         />
-        <span>{blogLoves}</span>
+        <span>{typeof blogLoves === 'number' ? blogLoves : '...'}</span>
       </button>
 
       {/* Clapping Hands Button */}
       <button
         type="button"
         onClick={handleClap}
-        disabled={isClapped || isClapLoading}
+        disabled={isClapped || isClapLoading || clapsCount === null}
         className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default touch-manipulation ${
           isClapped
             ? 'bg-blue-500/15 border-transparent text-blue-500'
@@ -78,7 +78,7 @@ export const BlogReactions: React.FC<BlogReactionsProps> = ({
             isClapped ? 'fill-blue-500' : 'fill-current text-foreground'
           }`}
         />
-        <span>{clapsCount}</span>
+        <span>{typeof clapsCount === 'number' ? clapsCount : '...'}</span>
       </button>
 
       {/* Share Button */}

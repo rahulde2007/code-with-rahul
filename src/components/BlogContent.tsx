@@ -294,7 +294,7 @@ const BlogContent = () => {
             {/* Large Reaction Count - Atmospheric/Watermark Style */}
             <div className="-mb-8 z-0">
               <span className="text-8xl md:text-9xl font-bold text-foreground/10 font-outfit tracking-wider select-none relative z-0">
-                {blogLoves}
+                {typeof blogLoves === 'number' ? blogLoves : '...'}
               </span>
             </div>
 

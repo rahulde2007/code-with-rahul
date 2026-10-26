@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { Heart } from 'lucide-react';
 
 interface LoveReactionButtonProps {
-    initialCount: number;
+    initialCount: number | null;
     onLove: () => void;
     isLoved: boolean;
     isLoading?: boolean;
