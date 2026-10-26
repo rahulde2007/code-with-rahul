@@ -1,5 +1,7 @@
+import crypto from 'crypto';
 import {
   getAdminSupabase,
+  getClientIp,
   parseRequestBody,
 } from './_utils.js';
 
@@ -60,8 +62,51 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
   }
 
-  // Handle POST request: record visitorId and update count
+  // Handle POST request: record visitor via salted SHA-256 hash and update count
   if (req.method === 'POST') {
+    // 1. Require VISITOR_HASH_SALT environment variable (no fallback string)
+    const salt = process.env.VISITOR_HASH_SALT;
+    if (!salt) {
+      console.error('Server configuration error: VISITOR_HASH_SALT environment variable is required.');
+      return res.status(500).json({ error: 'Server security configuration error.' });
+    }
+
+    const clientIp = getClientIp(req);
+
+    // 2. Localhost guard: do not record visits on localhost
+    const host = typeof req.headers?.host === 'string' ? req.headers.host : '';
+    const isLocal =
+      host.includes('localhost') ||
+      host.includes('127.0.0.1') ||
+      clientIp === '127.0.0.1' ||
+      clientIp === '::1' ||
+      clientIp === '::ffff:127.0.0.1';
+
+    if (isLocal) {
+      const { data: currentStats } = await supabase
+        .from('site_stats')
+        .select('visitor_count')
+        .eq('id', 1)
+        .maybeSingle();
+
+      const count =
+        typeof currentStats?.visitor_count === 'number'
+          ? currentStats.visitor_count
+          : Number(currentStats?.visitor_count) || 0;
+
+      return res.status(200).json({ visitorCount: count });
+    }
+
+    // 3. Extract User-Agent and create salted SHA-256 hash (never persist raw IP or User-Agent)
+    const rawUa = req.headers?.['user-agent'];
+    const userAgent = Array.isArray(rawUa) ? rawUa[0] : (typeof rawUa === 'string' ? rawUa : '');
+
+    const hash = crypto
+      .createHash('sha256')
+      .update(`${salt}:${clientIp}:${userAgent}`)
+      .digest('hex');
+
+    // 4. Parse request body to check incoming localStorage visitorId
     let body: any;
     try {
       body = await parseRequestBody(req);
@@ -70,36 +115,71 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(400).json({ error: 'Invalid request body.' });
     }
 
-    const rawVisitorId = body?.visitorId ?? (req as any).body?.visitorId;
-    const visitorId = typeof rawVisitorId === 'string' ? rawVisitorId.trim() : '';
-
-    if (!visitorId || !VISITOR_ID_REGEX.test(visitorId)) {
-      return res.status(400).json({ error: 'Valid visitorId is required.' });
-    }
+    const rawBodyVisitorId = body?.visitorId ?? (req as any).body?.visitorId;
+    const bodyVisitorId = typeof rawBodyVisitorId === 'string' ? rawBodyVisitorId.trim() : '';
 
     try {
-      // 1. Insert visitorId into site_visitors table
+      // 5. Dual check: verify if either the IP hash or the localStorage ID has already visited
+      const idsToCheck = [hash];
+      if (bodyVisitorId && VISITOR_ID_REGEX.test(bodyVisitorId) && bodyVisitorId !== hash) {
+        idsToCheck.push(bodyVisitorId);
+      }
+
+      const { data: existingVisitor, error: checkError } = await supabase
+        .from('site_visitors')
+        .select('visitor_id')
+        .in('visitor_id', idsToCheck)
+        .limit(1)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking existing visitor in POST /api/visit:', checkError);
+        return res.status(500).json({ error: 'Database service error.' });
+      }
+
+      if (existingVisitor) {
+        // Returning visitor: do not increment count, read and return current visitor_count
+        const { data: currentStats, error: statsError } = await supabase
+          .from('site_stats')
+          .select('visitor_count')
+          .eq('id', 1)
+          .maybeSingle();
+
+        if (statsError && statsError.code !== 'PGRST116') {
+          console.error('Error fetching site_stats for returning visitor:', statsError);
+          return res.status(500).json({ error: 'Failed to fetch visitor count.' });
+        }
+
+        const count =
+          typeof currentStats?.visitor_count === 'number'
+            ? currentStats.visitor_count
+            : Number(currentStats?.visitor_count) || 0;
+
+        return res.status(200).json({ visitorCount: count });
+      }
+
+      // 6. Insert salted hash as visitor ID into site_visitors table
       const { error: insertError } = await supabase
         .from('site_visitors')
-        .insert({ visitor_id: visitorId });
+        .insert({ visitor_id: hash });
 
       if (insertError) {
-        // 23505 = duplicate key violation (returning visitor)
+        // 23505 = duplicate key violation (concurrent insert)
         if (
           insertError.code === '23505' ||
           insertError.message?.includes('duplicate key') ||
           insertError.message?.includes('unique constraint')
         ) {
-          // Returning visitor: do not increment count, read and return current visitor_count
+          // Returning visitor: do not increment count
           const { data: currentStats, error: statsError } = await supabase
             .from('site_stats')
             .select('visitor_count')
             .eq('id', 1)
             .maybeSingle();
 
-          if (statsError) {
-            console.error('Error fetching site_stats for returning visitor:', statsError.message || statsError);
-            return res.status(500).json({ error: statsError.message || 'Failed to fetch visitor count.' });
+          if (statsError && statsError.code !== 'PGRST116') {
+            console.error('Error fetching site_stats after duplicate insert:', statsError);
+            return res.status(500).json({ error: 'Failed to fetch visitor count.' });
           }
 
           const count =
@@ -110,20 +190,20 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           return res.status(200).json({ visitorCount: count });
         }
 
-        console.error('Error inserting into site_visitors:', insertError.message || insertError);
-        return res.status(500).json({ error: insertError.message || 'Failed to record site visitor.' });
+        console.error('Error inserting into site_visitors:', insertError);
+        return res.status(500).json({ error: 'Failed to record site visitor.' });
       }
 
-      // 2. Insert succeeded (new visitor): increment site_stats.visitor_count +1
+      // 7. Insert succeeded (brand new visitor): increment site_stats.visitor_count +1
       const { data: currentStats, error: fetchStatsError } = await supabase
         .from('site_stats')
         .select('visitor_count')
         .eq('id', 1)
         .maybeSingle();
 
-      if (fetchStatsError) {
-        console.error('Error fetching site_stats before increment:', fetchStatsError.message || fetchStatsError);
-        return res.status(500).json({ error: fetchStatsError.message || 'Failed to fetch visitor count.' });
+      if (fetchStatsError && fetchStatsError.code !== 'PGRST116') {
+        console.error('Error fetching site_stats before increment in POST /api/visit:', fetchStatsError);
+        return res.status(500).json({ error: 'Failed to fetch visitor count.' });
       }
 
       const currentCount =
@@ -143,8 +223,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         .single();
 
       if (updateError) {
-        console.error('Error updating site_stats visitor_count:', updateError.message || updateError);
-        return res.status(500).json({ error: updateError.message || 'Failed to update visitor count.' });
+        console.error('Error updating site_stats visitor_count in POST /api/visit:', updateError);
+        return res.status(500).json({ error: 'Failed to update visitor count.' });
       }
 
       const finalCount =
@@ -155,7 +235,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(200).json({ visitorCount: finalCount });
     } catch (err: any) {
       console.error('Unexpected error in POST /api/visit:', err?.message || err);
-      return res.status(500).json({ error: err?.message || 'Internal server error.' });
+      return res.status(500).json({ error: 'Internal server error.' });
     }
   }
 
