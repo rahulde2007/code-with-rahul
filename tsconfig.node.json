@@ -13,6 +13,6 @@
   "include": [
     "vite.config.ts",
     "api/**/*.ts",
-    "src/lib/**/*.ts"
+    "src/lib/githubContributions.ts"
   ]
 }
