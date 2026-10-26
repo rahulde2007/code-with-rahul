@@ -1,7 +1,5 @@
 import {
   getAdminSupabase,
-  getClientIp,
-  isRateLimited,
   parseRequestBody,
 } from './_utils.js';
 
@@ -19,8 +17,6 @@ interface ApiResponse {
   json(body: unknown): void;
 }
 
-const VISITOR_ID_REGEX = /^[a-zA-Z0-9_-]{8,64}$/;
-
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
 
@@ -28,24 +24,15 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(204).json({});
   }
 
-  const ip = getClientIp(req);
-
-  // Rate limiting check: 60 requests per minute per IP
-  if (isRateLimited(`visit:${ip}`, 60, 60 * 1000)) {
-    return res.status(429).json({
-      error: 'Too many requests. Please try again later.',
-    });
-  }
-
   let supabase;
   try {
     supabase = getAdminSupabase();
   } catch (err: any) {
-    console.error('Supabase initialization error in visit API:', err.message);
+    console.error('Supabase initialization error in visit API:', err?.message || err);
     return res.status(500).json({ error: 'Database service configuration error.' });
   }
 
-  // Handle GET request: return current visitor count without incrementing
+  // Handle GET request: only read site_stats.visitor_count and return { visitorCount }
   if (req.method === 'GET') {
     try {
       const { data, error } = await supabase
@@ -55,14 +42,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         .maybeSingle();
 
       if (error) {
-        if (
-          error.message?.includes('relation "public.site_stats" does not exist') ||
-          error.code === '42P01'
-        ) {
-          return res.status(200).json({ visitorCount: 0 });
-        }
-        console.error('Error fetching visitor count in GET /api/visit:', error);
-        return res.status(500).json({ error: 'Failed to fetch visitor count.' });
+        console.error('Error fetching visitor count in GET /api/visit:', error.message || error);
+        return res.status(500).json({ error: error.message || 'Failed to fetch visitor count.' });
       }
 
       const count =
@@ -71,81 +52,83 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           : Number(data?.visitor_count) || 0;
 
       return res.status(200).json({ visitorCount: count });
-    } catch (error: any) {
-      console.error('Unexpected error in GET /api/visit:', error);
-      return res.status(500).json({ error: 'Internal server error.' });
+    } catch (err: any) {
+      console.error('Unexpected error in GET /api/visit:', err?.message || err);
+      return res.status(500).json({ error: err?.message || 'Internal server error.' });
     }
   }
 
-  // Handle POST request: record unique visitor and increment count atomically
+  // Handle POST request: record visitorId and update count
   if (req.method === 'POST') {
-    const body = await parseRequestBody(req);
+    let body: any;
+    try {
+      body = await parseRequestBody(req);
+    } catch (parseErr: any) {
+      console.error('Error parsing request body in POST /api/visit:', parseErr?.message || parseErr);
+      return res.status(400).json({ error: 'Invalid request body.' });
+    }
+
     const visitorId = typeof body?.visitorId === 'string' ? body.visitorId.trim() : '';
 
-    if (!visitorId || !VISITOR_ID_REGEX.test(visitorId)) {
-      return res.status(400).json({ error: 'Invalid or missing visitorId.' });
+    if (!visitorId) {
+      return res.status(400).json({ error: 'visitorId is required.' });
     }
 
     try {
-      // 1. First attempt: call Postgres RPC `record_site_visit` if defined
-      const { data: rpcData, error: rpcError } = await supabase.rpc('record_site_visit', {
-        visitor_id_input: visitorId,
-      });
-
-      if (!rpcError && rpcData) {
-        const parsed = typeof rpcData === 'string' ? JSON.parse(rpcData) : rpcData;
-        return res.status(200).json({
-          visitorCount: Number(parsed.visitorCount) || 0,
-          isNewVisitor: Boolean(parsed.isNewVisitor),
-        });
-      }
-
-      // 2. Fallback: try inserting visitor_id into site_visitors table
-      // PostgreSQL unique constraint error code is 23505
+      // 1. Insert visitorId into site_visitors table
       const { error: insertError } = await supabase
         .from('site_visitors')
         .insert({ visitor_id: visitorId });
 
       if (insertError) {
-        if (insertError.code === '23505') {
-          // Returning visitor! Do not increment count, just return current count
-          const { data: currentStats } = await supabase
+        // 23505 = duplicate key violation (returning visitor)
+        if (
+          insertError.code === '23505' ||
+          insertError.message?.includes('duplicate key') ||
+          insertError.message?.includes('unique constraint')
+        ) {
+          // Returning visitor: do not increment count, read and return current visitor_count
+          const { data: currentStats, error: statsError } = await supabase
             .from('site_stats')
             .select('visitor_count')
             .eq('id', 1)
             .maybeSingle();
+
+          if (statsError) {
+            console.error('Error fetching site_stats for returning visitor:', statsError.message || statsError);
+            return res.status(500).json({ error: statsError.message || 'Failed to fetch visitor count.' });
+          }
 
           const count =
             typeof currentStats?.visitor_count === 'number'
               ? currentStats.visitor_count
               : Number(currentStats?.visitor_count) || 0;
 
-          return res.status(200).json({
-            visitorCount: count,
-            isNewVisitor: false,
-          });
+          return res.status(200).json({ visitorCount: count });
         }
 
-        // Handle case where table is not yet created in Supabase
-        if (
-          insertError.message?.includes('relation "public.site_visitors" does not exist') ||
-          insertError.code === '42P01'
-        ) {
-          return res.status(200).json({ visitorCount: 0, isNewVisitor: false });
-        }
-
-        console.error('Error inserting into site_visitors:', insertError);
-        return res.status(500).json({ error: 'Failed to record site visit.' });
+        console.error('Error inserting into site_visitors:', insertError.message || insertError);
+        return res.status(500).json({ error: insertError.message || 'Failed to record site visitor.' });
       }
 
-      // New visitor successfully recorded! Increment site_stats.visitor_count
-      const { data: existingStats } = await supabase
+      // 2. Insert succeeded (new visitor): increment site_stats.visitor_count +1
+      const { data: currentStats, error: fetchStatsError } = await supabase
         .from('site_stats')
         .select('visitor_count')
         .eq('id', 1)
         .maybeSingle();
 
-      const nextCount = (Number(existingStats?.visitor_count) || 0) + 1;
+      if (fetchStatsError) {
+        console.error('Error fetching site_stats before increment:', fetchStatsError.message || fetchStatsError);
+        return res.status(500).json({ error: fetchStatsError.message || 'Failed to fetch visitor count.' });
+      }
+
+      const currentCount =
+        typeof currentStats?.visitor_count === 'number'
+          ? currentStats.visitor_count
+          : Number(currentStats?.visitor_count) || 0;
+
+      const nextCount = currentCount + 1;
 
       const { data: updatedStats, error: updateError } = await supabase
         .from('site_stats')
@@ -157,23 +140,22 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         .single();
 
       if (updateError) {
-        console.error('Error updating site_stats:', updateError);
-        return res.status(500).json({ error: 'Failed to update visitor count.' });
+        console.error('Error updating site_stats visitor_count:', updateError.message || updateError);
+        return res.status(500).json({ error: updateError.message || 'Failed to update visitor count.' });
       }
 
-      return res.status(200).json({
-        visitorCount:
-          typeof updatedStats?.visitor_count === 'number'
-            ? updatedStats.visitor_count
-            : nextCount,
-        isNewVisitor: true,
-      });
-    } catch (error: any) {
-      console.error('Unexpected error in POST /api/visit:', error);
-      return res.status(500).json({ error: 'Internal server error.' });
+      const finalCount =
+        typeof updatedStats?.visitor_count === 'number'
+          ? updatedStats.visitor_count
+          : nextCount;
+
+      return res.status(200).json({ visitorCount: finalCount });
+    } catch (err: any) {
+      console.error('Unexpected error in POST /api/visit:', err?.message || err);
+      return res.status(500).json({ error: err?.message || 'Internal server error.' });
     }
   }
 
-  res.setHeader('Allow', 'GET, POST');
+  res.setHeader('Allow', 'GET, POST, OPTIONS');
   return res.status(405).json({ error: 'Method Not Allowed' });
 }
