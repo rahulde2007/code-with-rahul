@@ -450,6 +450,18 @@ export const commentService = {
 
   // Fetch all blog views in a single query
   async getAllBlogViews(): Promise<Record<string, number>> {
+    try {
+      const res = await fetch('/api/views');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data.views === 'object') {
+          return data.views;
+        }
+      }
+    } catch (err) {
+      console.warn('Unable to fetch blog views from /api/views, falling back:', err);
+    }
+
     if (!isSupabaseConfigured) return {};
     try {
       const { data, error } = await supabase
@@ -477,6 +489,18 @@ export const commentService = {
 
   // Get single blog post view count
   async getBlogViews(blogSlug: string): Promise<number> {
+    try {
+      const res = await fetch(`/api/views?slug=${encodeURIComponent(blogSlug)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.viewCount === 'number') {
+          return data.viewCount;
+        }
+      }
+    } catch (err) {
+      console.warn('Unable to fetch blog view count from /api/views, falling back:', err);
+    }
+
     if (!isSupabaseConfigured) return 0;
     try {
       const { data, error } = await supabase
@@ -499,7 +523,20 @@ export const commentService = {
   },
 
   // Increment blog post view count (upsert-style update)
-  async incrementBlogViews(blogSlug: string): Promise<void> {
+  async incrementBlogViews(blogSlug: string, visitorId?: string): Promise<void> {
+    try {
+      const res = await fetch('/api/views', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: blogSlug, visitorId }),
+      });
+      if (res.ok) {
+        return;
+      }
+    } catch (err) {
+      console.warn('Unable to increment blog view via /api/views, falling back:', err);
+    }
+
     if (!isSupabaseConfigured) return;
     try {
       // First, try to fetch existing view count

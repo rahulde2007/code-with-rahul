@@ -11,6 +11,7 @@ import subscribeHandler from './api/subscribe'
 import clapsHandler from './api/claps'
 import photoLikesHandler from './api/photo-likes'
 import visitHandler from './api/visit'
+import viewsHandler from './api/views'
 
 const githubContributionsApi = (): Plugin => ({
   name: 'github-contributions-api',
@@ -88,6 +89,7 @@ export default defineConfig(({ mode }) => {
       createApiPlugin('claps-api', '/api/claps', clapsHandler),
       createApiPlugin('photo-likes-api', '/api/photo-likes', photoLikesHandler),
       createApiPlugin('visit-api', '/api/visit', visitHandler),
+      createApiPlugin('views-api', '/api/views', viewsHandler),
     ],
   };
 })

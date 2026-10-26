@@ -136,7 +136,7 @@ const BlogList = () => {
                         ))}
                         <span className="bg-muted text-muted-foreground px-2.5 py-1 rounded-md text-[11px] font-medium font-hanken border border-border flex items-center gap-1.5">
                           <Eye size={13} className="text-muted-foreground" />
-                          <span>{loadingViews ? '...' : `${blogViews[post.slug] || 0} views`}</span>
+                          <span>{loadingViews || blogViews[post.slug] === undefined ? '...' : `${blogViews[post.slug]} views`}</span>
                         </span>
                       </div>
 

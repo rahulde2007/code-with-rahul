@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   CalendarDays,
+  Eye,
   X,
   Loader2,
 } from 'lucide-react';
@@ -10,7 +11,7 @@ import GiscusComments from './ui/GiscusComments';
 import ShareModal from './modals/ShareModal';
 import { useBlogReactions } from '../hooks/useBlogReactions';
 import { useBlogClaps } from '../hooks/useBlogClaps';
-import { commentService } from '../lib/supabase';
+import { useBlogViews } from '../hooks/useBlogViews';
 import LoveReactionButton from './ui/LoveReactionButton';
 import ReadingProgressPill from './ui/ReadingProgressPill';
 import Subscribe from './ui/Subscribe';
@@ -81,6 +82,7 @@ const CodeBlock = ({ children, className }: any) => {
 const BlogContent = () => {
   const { slug } = useParams();
   const post = slug ? blogPostsData[slug as keyof typeof blogPostsData] : null;
+  const { viewCount: blogViewCount, isLoading: loadingViews } = useBlogViews(slug);
 
   const MdxContent = useMemo(() => {
     const path = `../content/blog/${slug}.mdx`;
@@ -117,30 +119,10 @@ const BlogContent = () => {
 
 
 
-  const hasIncrementedView = useRef<string | null>(null);
-
   useEffect(() => {
     // Reset scroll to top instantly
     window.scrollTo(0, 0);
-
-    if (
-      slug &&
-      blogPostsData[slug as keyof typeof blogPostsData] &&
-      hasIncrementedView.current !== slug
-    ) {
-      hasIncrementedView.current = slug;
-      incrementBlogViews();
-    }
   }, [slug]);
-
-  const incrementBlogViews = async () => {
-    if (!slug) return;
-    try {
-      await commentService.incrementBlogViews(slug);
-    } catch (error) {
-      console.warn('Unable to record blog view:', error);
-    }
-  };
 
 
 
@@ -216,6 +198,9 @@ const BlogContent = () => {
                   <div className="flex items-center gap-1.5 text-xs mt-0.5 text-muted-foreground leading-none">
                     <CalendarDays className="h-4 w-4" />
                     <span className="pt-[1px]">{post.date}</span>
+                    <span>•</span>
+                    <Eye className="h-3.5 w-3.5" />
+                    <span>{loadingViews || blogViewCount === null ? '...' : `${blogViewCount} views`}</span>
                   </div>
                 </div>
               </div>
