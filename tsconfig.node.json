@@ -11,8 +11,6 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "vite.config.ts",
-    "api/**/*.ts",
-    "src/lib/githubContributions.ts"
+    "vite.config.ts"
   ]
 }
