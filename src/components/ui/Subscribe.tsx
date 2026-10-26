@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Check, Radio, Instagram, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, Check, Radio, Instagram, Loader2, AlertCircle, X, ArrowRight } from 'lucide-react';
 import { getVisitorId } from '../../lib/visitor';
 
 interface SubscribeProps {
@@ -21,7 +21,18 @@ const Subscribe: React.FC<SubscribeProps> = ({
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const hasCheckedRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isFormOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isFormOpen]);
 
   useEffect(() => {
     if (hasCheckedRef.current) return;
@@ -65,6 +76,16 @@ const Subscribe: React.FC<SubscribeProps> = ({
       });
   }, []);
 
+  const handleOpenForm = () => {
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setStatus('idle');
+    setMessage('');
+  };
+
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -85,6 +106,7 @@ const Subscribe: React.FC<SubscribeProps> = ({
       setStatus('success');
       setMessage("You're already subscribed to the newsletter!");
       setIsSubscribed(true);
+      setIsFormOpen(false);
       try {
         localStorage.setItem('is_newsletter_subscribed', 'true');
       } catch {}
@@ -113,6 +135,7 @@ const Subscribe: React.FC<SubscribeProps> = ({
       setStatus('success');
       setMessage(data.message || "You're already subscribed to the newsletter!");
       setIsSubscribed(true);
+      setIsFormOpen(false);
       try {
         localStorage.setItem('is_newsletter_subscribed', 'true');
       } catch {}
@@ -166,11 +189,12 @@ const Subscribe: React.FC<SubscribeProps> = ({
                   {message || "You're already subscribed to the newsletter!"}
                 </span>
               </motion.div>
-            ) : (
+            ) : isFormOpen ? (
               <motion.form
                 key="subscribe-form"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
                 onSubmit={handleSubscribe}
                 className="w-full flex flex-col gap-2.5"
               >
@@ -180,6 +204,7 @@ const Subscribe: React.FC<SubscribeProps> = ({
                     <Mail className="w-4 h-4" />
                   </div>
                   <input
+                    ref={inputRef}
                     type="email"
                     value={email}
                     onChange={(e) => {
@@ -193,26 +218,25 @@ const Subscribe: React.FC<SubscribeProps> = ({
                     className="flex-1 bg-transparent px-2 py-2 text-foreground placeholder-muted-foreground focus:outline-none text-sm w-full font-hanken"
                   />
                   <button
+                    type="button"
+                    onClick={handleCloseForm}
+                    title="Cancel"
+                    aria-label="Cancel"
+                    className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40 transition-colors flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <button
                     type="submit"
                     disabled={isSubmitting || !email.trim()}
                     title="Subscribe"
-                    className="flex items-center justify-center h-9 px-4 bg-primary text-primary-foreground rounded-xl active:scale-95 transition-all font-outfit text-xs font-semibold hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed group shadow-sm flex-shrink-0"
+                    aria-label="Subscribe"
+                    className="flex items-center justify-center w-9 h-9 bg-primary text-primary-foreground rounded-full active:scale-95 transition-all hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed group shadow-sm flex-shrink-0"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
                     ) : (
-                      <span className="flex items-center gap-1.5">
-                        <span>Subscribe</span>
-                        <svg
-                          className="w-3 h-3 group-hover:translate-x-0.5 transition-transform"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                     )}
                   </button>
                 </div>
@@ -229,6 +253,33 @@ const Subscribe: React.FC<SubscribeProps> = ({
                   </motion.div>
                 )}
               </motion.form>
+            ) : (
+              <motion.div
+                key="subscribe-trigger"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                className="w-full flex items-center"
+              >
+                <button
+                  type="button"
+                  onClick={handleOpenForm}
+                  className="flex items-center justify-center h-10 px-5 bg-primary text-primary-foreground rounded-2xl active:scale-95 transition-all font-outfit text-sm font-semibold hover:opacity-95 group shadow-sm flex-shrink-0"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>Subscribe Now</span>
+                    <svg
+                      className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </button>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
