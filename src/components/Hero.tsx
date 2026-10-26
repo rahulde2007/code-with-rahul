@@ -132,7 +132,7 @@ const Hero = () => {
               loading="eager"
             />
             <motion.img
-              src="/assets/dp%20avater.png"
+              src="/assets/RAHUL_DE_Photo.png"
               alt="Rahul De"
               initial={false}
               animate={{
