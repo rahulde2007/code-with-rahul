@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Check, Radio, Instagram, Loader2, AlertCircle } from 'lucide-react';
+import { getVisitorId } from '../../lib/visitor';
 
 interface SubscribeProps {
   postTitle?: string;
+}
+
+function isLocalhost(): boolean {
+  if (typeof window === 'undefined') return false;
+  const host = window.location.hostname;
+  return host === 'localhost' || host === '127.0.0.1';
 }
 
 const Subscribe: React.FC<SubscribeProps> = ({
@@ -14,15 +21,48 @@ const Subscribe: React.FC<SubscribeProps> = ({
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const hasCheckedRef = useRef(false);
 
   useEffect(() => {
+    if (hasCheckedRef.current) return;
+    hasCheckedRef.current = true;
+
     // Check if user is already marked as subscribed in localStorage
-    const subscribed = localStorage.getItem('is_newsletter_subscribed');
-    if (subscribed === 'true') {
+    const cachedSubscribed = typeof window !== 'undefined'
+      ? localStorage.getItem('is_newsletter_subscribed')
+      : null;
+
+    if (cachedSubscribed === 'true') {
       setIsSubscribed(true);
       setStatus('success');
       setMessage("You're already subscribed to the newsletter!");
     }
+
+    const visitorId = getVisitorId();
+    if (!visitorId) return;
+
+    fetch(`/api/subscribe?visitorId=${encodeURIComponent(visitorId)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) return;
+        if (data.subscribed) {
+          setIsSubscribed(true);
+          setStatus('success');
+          setMessage("You're already subscribed to the newsletter!");
+          try {
+            localStorage.setItem('is_newsletter_subscribed', 'true');
+          } catch {}
+        } else {
+          setIsSubscribed(false);
+          setStatus('idle');
+          try {
+            localStorage.removeItem('is_newsletter_subscribed');
+          } catch {}
+        }
+      })
+      .catch((err) => {
+        console.warn('Unable to verify subscription:', err);
+      });
   }, []);
 
   const handleSubscribe = async (e: React.FormEvent) => {
@@ -40,13 +80,27 @@ const Subscribe: React.FC<SubscribeProps> = ({
     setStatus('idle');
     setMessage('');
 
+    // Localhost guard: do not send network POST on localhost to avoid populating live test data
+    if (isLocalhost()) {
+      setStatus('success');
+      setMessage("You're already subscribed to the newsletter!");
+      setIsSubscribed(true);
+      try {
+        localStorage.setItem('is_newsletter_subscribed', 'true');
+      } catch {}
+      setEmail('');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
+      const visitorId = getVisitorId();
       const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: trimmedEmail }),
+        body: JSON.stringify({ email: trimmedEmail, visitorId }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -57,9 +111,11 @@ const Subscribe: React.FC<SubscribeProps> = ({
 
       // Successful subscription (or already subscribed)
       setStatus('success');
-      setMessage(data.message || 'Subscribed successfully! Thank you for joining.');
+      setMessage(data.message || "You're already subscribed to the newsletter!");
       setIsSubscribed(true);
-      localStorage.setItem('is_newsletter_subscribed', 'true');
+      try {
+        localStorage.setItem('is_newsletter_subscribed', 'true');
+      } catch {}
       setEmail('');
     } catch (err: any) {
       console.error('Subscription error:', err);
@@ -101,27 +157,14 @@ const Subscribe: React.FC<SubscribeProps> = ({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3 bg-[#00DC82]/10 border border-[#00DC82]/30 text-foreground rounded-2xl text-sm font-medium"
+                className="flex items-center gap-3 px-4 py-3 bg-[#00DC82]/10 border border-[#00DC82]/30 text-foreground rounded-2xl text-sm font-medium w-full"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#00DC82]/20 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-3.5 h-3.5 text-[#00DC82]" />
-                  </div>
-                  <span className="font-outfit text-sm">
-                    {message || "You're subscribed!"}
-                  </span>
+                <div className="w-6 h-6 rounded-full bg-[#00DC82]/20 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3.5 h-3.5 text-[#00DC82]" />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSubscribed(false);
-                    setStatus('idle');
-                    setMessage('');
-                  }}
-                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 ml-9 sm:ml-0"
-                >
-                  Change email
-                </button>
+                <span className="font-outfit text-sm">
+                  {message || "You're already subscribed to the newsletter!"}
+                </span>
               </motion.div>
             ) : (
               <motion.form
