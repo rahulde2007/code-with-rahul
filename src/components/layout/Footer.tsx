@@ -7,22 +7,28 @@ import {
 } from '../icons/SocialIcons';
 import { useVisitorCount } from '../../hooks/useVisitorCount';
 
+// Helper to get ordinal suffix (st, nd, rd, th)
+export const getOrdinalSuffix = (n: number): string => {
+  const abs = Math.abs(n);
+  const mod100 = abs % 100;
+  if (mod100 >= 11 && mod100 <= 13) {
+    return 'th';
+  }
+  switch (abs % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+};
+
 // Helper to format number into English ordinal (e.g. 1st, 2nd, 3rd, 4th, 11th, 12th, 13th, 21st...)
 export const getOrdinal = (n: number): string => {
-  const mod100 = n % 100;
-  if (mod100 >= 11 && mod100 <= 13) {
-    return `${n}th`;
-  }
-  switch (n % 10) {
-    case 1:
-      return `${n}st`;
-    case 2:
-      return `${n}nd`;
-    case 3:
-      return `${n}rd`;
-    default:
-      return `${n}th`;
-  }
+  return `${n.toLocaleString()}${getOrdinalSuffix(n)}`;
 };
 
 const navigateLinks = [
@@ -149,7 +155,14 @@ const Footer = () => {
           </p>
           {visitorCount !== null && visitorCount > 0 ? (
             <p className="text-muted-foreground text-sm font-hanken">
-              You're the {getOrdinal(visitorCount)} visitor to my website.
+              You're the{' '}
+              <span className="font-semibold text-foreground">
+                {visitorCount.toLocaleString()}
+                <sup className="text-[10px] ml-0.5 text-[#00DC82] font-semibold">
+                  {getOrdinalSuffix(visitorCount)}
+                </sup>
+              </span>{' '}
+              visitor to my website.
             </p>
           ) : (
             <p className="text-muted-foreground text-sm font-hanken">
