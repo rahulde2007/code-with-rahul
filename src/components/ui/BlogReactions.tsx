@@ -42,9 +42,10 @@ export const BlogReactions: React.FC<BlogReactionsProps> = ({
     <div className="flex items-center gap-3">
       {/* Heart / Love Button */}
       <button
+        type="button"
         onClick={onLove}
         disabled={userHasLoved || lovingBlog}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default ${
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default touch-manipulation ${
           userHasLoved
             ? 'bg-red-500/15 border-transparent text-red-500'
             : 'bg-card border-border text-foreground hover:bg-accent'
@@ -61,9 +62,10 @@ export const BlogReactions: React.FC<BlogReactionsProps> = ({
 
       {/* Clapping Hands Button */}
       <button
+        type="button"
         onClick={handleClap}
         disabled={isClapped || isClapLoading}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default ${
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer disabled:cursor-default touch-manipulation ${
           isClapped
             ? 'bg-blue-500/15 border-transparent text-blue-500'
             : 'bg-card border-border text-foreground hover:bg-accent'
@@ -81,8 +83,9 @@ export const BlogReactions: React.FC<BlogReactionsProps> = ({
 
       {/* Share Button */}
       <button
+        type="button"
         onClick={onShare}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl text-foreground hover:bg-accent transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl text-foreground hover:bg-accent transition-all duration-200 group shadow-sm text-sm font-bold font-outfit cursor-pointer touch-manipulation"
         aria-label="Share this post"
       >
         <span>Share</span>

@@ -35,7 +35,19 @@ async function recordVisitOnce(visitorId: string): Promise<number | null> {
       }
       return null;
     } catch (err) {
-      console.warn('Failed to record site visit:', err);
+      console.warn('Failed to record site visit via POST, falling back to GET:', err);
+      try {
+        const getResponse = await fetch('/api/visit', { method: 'GET' });
+        if (getResponse.ok) {
+          const getData = await getResponse.json();
+          if (typeof getData?.visitorCount === 'number') {
+            cachedVisitorCount = getData.visitorCount;
+            return getData.visitorCount;
+          }
+        }
+      } catch (getErr) {
+        console.warn('Failed to fetch visitor count fallback via GET:', getErr);
+      }
       return null;
     } finally {
       inFlightVisitPromise = null;

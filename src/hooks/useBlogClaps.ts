@@ -70,14 +70,14 @@ export const useBlogClaps = (slug: string | undefined): UseBlogClapsReturn => {
     const previousCount = blogClaps;
     const visitorId = getVisitorId();
 
-    // 1. Optimistic update
     setClappingBlog(true);
-    setUserHasClapped(true);
-    setBlogClaps((prev) => prev + 1);
-    saveUserClap();
-    setBlogClapsError(null);
-
     try {
+      // 1. Optimistic update
+      setUserHasClapped(true);
+      setBlogClaps((prev) => prev + 1);
+      saveUserClap();
+      setBlogClapsError(null);
+
       // 2. Persist clap via serverless function
       const response = await fetch('/api/claps', {
         method: 'POST',

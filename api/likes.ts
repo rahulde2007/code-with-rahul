@@ -26,6 +26,10 @@ const VISITOR_ID_REGEX = /^[a-zA-Z0-9_-]{8,64}$/;
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
 
+  if (req.method === 'OPTIONS') {
+    return res.status(204).json({});
+  }
+
   const ip = getClientIp(req);
 
   // Rate limiting check: 60 requests per minute per IP

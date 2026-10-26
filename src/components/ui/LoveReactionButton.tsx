@@ -91,11 +91,12 @@ const LoveReactionButton = memo(({
 
             {/* Main Button */}
             <motion.button
+                type="button"
                 onClick={handleClick}
                 disabled={isLoved || isLoading}
                 animate={controls}
                 whileTap={{ scale: 0.9 }}
-                className="relative z-10 group cursor-pointer disabled:cursor-default"
+                className="relative z-10 group cursor-pointer disabled:cursor-default touch-manipulation"
                 aria-label={isLoved ? "Loved" : "Love this post"}
             >
                 <div className={`relative w-28 h-28 rounded-full border flex items-center justify-center transition-all duration-300 ease-out bg-card shadow-lg ${isLoved

@@ -44,12 +44,16 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
 
   const saveUserReaction = (type: 'love' | 'like') => {
     if (!slug) return;
-    const key = type === 'love' ? 'lovedBlogs' : 'likedBlogs';
-    const existing = JSON.parse(localStorage.getItem(key) || '[]');
-    if (!Array.isArray(existing)) return;
-    if (!existing.includes(slug)) {
-      existing.push(slug);
-      localStorage.setItem(key, JSON.stringify(existing));
+    try {
+      const key = type === 'love' ? 'lovedBlogs' : 'likedBlogs';
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      if (!Array.isArray(existing)) return;
+      if (!existing.includes(slug)) {
+        existing.push(slug);
+        localStorage.setItem(key, JSON.stringify(existing));
+      }
+    } catch (error) {
+      console.warn('Unable to save user reaction to localStorage:', error);
     }
   };
 
@@ -96,14 +100,14 @@ export const useBlogReactions = (slug: string | undefined): UseBlogReactionsRetu
     const previousCount = blogLoves;
     const visitorId = getVisitorId();
 
-    // 1. Optimistic update
     setLovingBlog(true);
-    setUserHasLoved(true);
-    setBlogLoves((prev) => prev + 1);
-    saveUserReaction('love');
-    setBlogReactionsError(null);
-
     try {
+      // 1. Optimistic update
+      setUserHasLoved(true);
+      setBlogLoves((prev) => prev + 1);
+      saveUserReaction('love');
+      setBlogReactionsError(null);
+
       // 2. Persist like via serverless function
       const response = await fetch('/api/likes', {
         method: 'POST',
