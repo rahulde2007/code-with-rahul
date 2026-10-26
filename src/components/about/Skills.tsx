@@ -1,62 +1,49 @@
 import ScrollReveal from '../ui/ScrollReveal';
+import { SiC, SiCplusplus, SiGit, SiGithub } from 'react-icons/si';
 
 // Import SVG icons from the components/svgs folder
-import TypeScript from '../svgs/TypeScript';
-import JavaScript from '../svgs/JavaScript';
 import { Python } from '../svgs/Python';
-import { Php } from '../svgs/Php';
-import { Java } from '../svgs/Java';
-import ReactIcon from '../svgs/ReactIcon';
-import NextJs from '../svgs/NextJs';
-import TailwindCss from '../svgs/TailwindCss';
-import Motion from '../svgs/Motion';
-import NodeJs from '../svgs/NodeJs';
-import Bun from '../svgs/Bun';
-import { MySQL } from '../svgs/MySQL';
-import MongoDB from '../svgs/MongoDB';
-import Figma from '../svgs/Figma';
 import Html from '../svgs/Html';
 import CSS from '../svgs/CSS';
+import JavaScript from '../svgs/JavaScript';
+import NextJs from '../svgs/NextJs';
+import Bun from '../svgs/Bun';
+import { MySQL } from '../svgs/MySQL';
 import { VisualStudioCode } from '../svgs/VisualStudioCode';
 import Vercel from '../svgs/Vercel';
-import ExpressJs from '../svgs/ExpressJs';
-import AWS from '../svgs/AWS';
-import { FastAPI } from '../svgs/FastAPI';
-import ThreeJs from '../svgs/ThreeJs';
-import { Linux } from '../svgs/Linux';
+
+// Icon wrappers for languages/tools from react-icons
+const CIcon = ({ className }: { className?: string }) => (
+  <SiC className={`text-[#659AD2] ${className || ''}`} />
+);
+
+const CppIcon = ({ className }: { className?: string }) => (
+  <SiCplusplus className={`text-[#00599C] ${className || ''}`} />
+);
+
+const GitIcon = ({ className }: { className?: string }) => (
+  <SiGit className={`text-[#F05032] ${className || ''}`} />
+);
+
+const GithubIcon = ({ className }: { className?: string }) => (
+  <SiGithub className={`text-foreground ${className || ''}`} />
+);
 
 const Skills = () => {
-  // A comprehensive, beautifully ordered tech stack array matching your reference image with official URLs
+  // Ordered tech stack with 13 items
   const techStack = [
-    // Programming Languages
-    { name: 'TypeScript', icon: TypeScript, href: 'https://www.typescriptlang.org/' },
-    { name: 'JavaScript', icon: JavaScript, href: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript' },
+    { name: 'C', icon: CIcon, href: 'https://en.cppreference.com/w/c' },
+    { name: 'C++', icon: CppIcon, href: 'https://isocpp.org/' },
     { name: 'Python', icon: Python, href: 'https://www.python.org/' },
-    { name: 'PHP', icon: Php, href: 'https://www.php.net/' },
-    { name: 'Java', icon: Java, href: 'https://www.oracle.com/java/' },
-    // Frontend
-    { name: 'React', icon: ReactIcon, href: 'https://react.dev/' },
-    { name: 'Next.js', icon: NextJs, href: 'https://nextjs.org/' },
-    { name: 'Tailwind CSS', icon: TailwindCss, href: 'https://tailwindcss.com/' },
-    { name: 'Motion', icon: Motion, href: 'https://motion.dev/' },
-    // Backend & DB
-    { name: 'Node.js', icon: NodeJs, href: 'https://nodejs.org/' },
-    { name: 'Bun', icon: Bun, href: 'https://bun.sh/' },
-    { name: 'MySQL', icon: MySQL, href: 'https://www.mysql.com/' },
-    { name: 'MongoDB', icon: MongoDB, href: 'https://www.mongodb.com/' },
-    // Tools & Ecosystem
-    { name: 'Git', href: 'https://git-scm.com/' }, // No icon in folder, will render as text-only pill
-    { name: 'Docker', href: 'https://www.docker.com/' }, // No icon in folder, will render as text-only pill
-    { name: 'Figma', icon: Figma, href: 'https://www.figma.com/' },
-    // Extended core tech stack
-    { name: 'Express.js', icon: ExpressJs, href: 'https://expressjs.com/' },
-    { name: 'AWS', icon: AWS, href: 'https://aws.amazon.com/' },
-    { name: 'FastAPI', icon: FastAPI, href: 'https://fastapi.tiangolo.com/' },
-    { name: 'Three.js', icon: ThreeJs, href: 'https://threejs.org/' },
     { name: 'HTML', icon: Html, href: 'https://developer.mozilla.org/en-US/docs/Web/HTML' },
     { name: 'CSS', icon: CSS, href: 'https://developer.mozilla.org/en-US/docs/Web/CSS' },
+    { name: 'JavaScript', icon: JavaScript, href: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript' },
+    { name: 'Next.js', icon: NextJs, href: 'https://nextjs.org/' },
+    { name: 'Bun', icon: Bun, href: 'https://bun.sh/' },
+    { name: 'MySQL', icon: MySQL, href: 'https://www.mysql.com/' },
+    { name: 'Git', icon: GitIcon, href: 'https://git-scm.com/' },
+    { name: 'GitHub', icon: GithubIcon, href: 'https://github.com/' },
     { name: 'VS Code', icon: VisualStudioCode, href: 'https://code.visualstudio.com/' },
-    { name: 'Linux', icon: Linux, href: 'https://www.linux.org/' },
     { name: 'Vercel', icon: Vercel, href: 'https://vercel.com/' },
   ];
 
@@ -77,7 +64,7 @@ const Skills = () => {
             const IconComponent = tech.icon;
             return (
               <ScrollReveal
-                key={idx}
+                key={tech.name}
                 delay={idx * 0.012}
               >
                 <a
