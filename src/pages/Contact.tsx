@@ -156,8 +156,7 @@ const Contact = () => {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    required
-                    maxLength={200}
+                    maxLength={150}
                     className="w-full px-4 py-3 font-poppins border-input bg-card border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 focus:border-foreground/30 transition-colors"
                     placeholder="Project Discussion"
                   />
@@ -176,7 +175,7 @@ const Contact = () => {
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    maxLength={5000}
+                    maxLength={2000}
                     rows={5}
                     className="w-full px-4 py-3 font-poppins border-input bg-card border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 focus:border-foreground/30 transition-colors resize-none"
                     placeholder="Tell me about your project..."

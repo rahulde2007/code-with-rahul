@@ -8,6 +8,7 @@ import {
 import sponsorsHandler from './api/sponsors'
 import likesHandler from './api/likes'
 import subscribeHandler from './api/subscribe'
+import contactHandler from './api/contact'
 import clapsHandler from './api/claps'
 import photoLikesHandler from './api/photo-likes'
 import visitHandler from './api/visit'
@@ -86,6 +87,7 @@ export default defineConfig(({ mode }) => {
       createApiPlugin('sponsors-api', '/api/sponsors', sponsorsHandler),
       createApiPlugin('likes-api', '/api/likes', likesHandler),
       createApiPlugin('subscribe-api', '/api/subscribe', subscribeHandler),
+      createApiPlugin('contact-api', '/api/contact', contactHandler),
       createApiPlugin('claps-api', '/api/claps', clapsHandler),
       createApiPlugin('photo-likes-api', '/api/photo-likes', photoLikesHandler),
       createApiPlugin('visit-api', '/api/visit', visitHandler),
