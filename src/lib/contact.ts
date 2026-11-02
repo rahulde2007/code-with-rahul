@@ -3,7 +3,6 @@ export const CONTACT_EMAIL = 'rahulde937@gmail.com';
 export interface ContactMessage {
   name: string;
   email: string;
-  subject: string;
   message: string;
   _gotcha?: string;
 }
@@ -20,7 +19,6 @@ export const sendContactMessage = async (
 ): Promise<void> => {
   const name = message.name.trim();
   const email = message.email.trim();
-  const subject = message.subject.trim();
   const body = message.message.trim();
   if (!name || !email || !body) {
     throw new ContactSubmissionError('Please complete all fields before sending.');
@@ -28,7 +26,7 @@ export const sendContactMessage = async (
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new ContactSubmissionError('Please enter a valid email address.');
   }
-  if (name.length > 100 || email.length > 254 || subject.length > 150 || body.length > 2000) {
+  if (name.length > 100 || email.length > 254 || body.length > 2000) {
     throw new ContactSubmissionError('One or more fields exceed the allowed length.');
   }
 
@@ -42,7 +40,6 @@ export const sendContactMessage = async (
       body: JSON.stringify({
         name,
         email,
-        subject,
         message: body,
         _gotcha: message._gotcha,
       }),

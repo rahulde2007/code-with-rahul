@@ -8,7 +8,6 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    subject: '',
     message: '',
     _gotcha: '',
   });
@@ -34,7 +33,7 @@ const Contact = () => {
     try {
       await sendContactMessage(formData);
       setStatus('Message sent successfully!');
-      setFormData({ name: '', email: '', subject: '', message: '', _gotcha: '' });
+      setFormData({ name: '', email: '', message: '', _gotcha: '' });
       setSent(true);
     } catch (error) {
       console.error('Contact form submission failed:', error);
@@ -140,25 +139,6 @@ const Contact = () => {
                     autoComplete="email"
                     className="w-full px-4 py-3 border-input bg-card border rounded-lg text-foreground font-poppins placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 focus:border-foreground/30 transition-colors"
                     placeholder="your.email@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="subject"
-                    className="block text-sm font-medium font-poppins text-muted-foreground mb-2"
-                  >
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    maxLength={150}
-                    className="w-full px-4 py-3 font-poppins border-input bg-card border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30 focus:border-foreground/30 transition-colors"
-                    placeholder="Project Discussion"
                   />
                 </div>
 

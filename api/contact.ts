@@ -51,9 +51,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!EMAIL_REGEX.test(email)) {
     return res.status(400).json({ error: 'Please enter a valid email address.' });
   }
-  if (subject.length > 150) {
-    return res.status(400).json({ error: 'Subject must be 150 characters or fewer.' });
-  }
   if (!message) {
     return res.status(400).json({ error: 'Message is required.' });
   }
